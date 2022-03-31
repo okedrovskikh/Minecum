@@ -33,6 +33,8 @@ void processInput(GLFWwindow* window)
         player.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         player.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        player.ProcessKeyboard(UP, deltaTime);
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -98,7 +100,10 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
+        player.setFly(false);
         bool fall = true;
+        glm::vec4 closestPlain;
+        glm::vec3 currPosition = player.entity.position;
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -126,24 +131,44 @@ int main()
                 model = glm::translate(model, chunk.coordinate[i]);
                 containerShader.setMat4("model", model);
                 glDrawArrays(GL_TRIANGLES, 0, 36);
-                Collider currBlockCollider(chunk.coordinate[i], 1.0f, 1.0f, 1.0f);
+
+                Collider currBlockCollider(chunk.coordinate[i], 1.0f, 1.0f, 1.0f, container.getVertices(), container.getVerticesSize());
                 bool collisionX = false;
                 bool collisionY = false;
                 bool collisionZ = false;
-                player.checkCollision(collisionX, collisionY, collisionZ, currBlockCollider);
-                if (collisionX && collisionY && collisionZ) {
-                    std::cout << "Collision with " << chunk.coordinate[i].x << " " << chunk.coordinate[i].y << " " << chunk.coordinate[i].z << std::endl;
-                    fall = false;
+                player.checkCollisionAABB(collisionX, collisionY, collisionZ, currBlockCollider);
+                if (collisionX && collisionY && collisionZ)
+                {
+                    std::cout << "Potential collision with " << chunk.coordinate[i].x << " " << chunk.coordinate[i].y << " " << chunk.coordinate[i].z << std::endl;
+                    //std::cout << currBlockCollider.distance(player.entity.position) << std::endl;
+                    closestPlain = currBlockCollider.getClosestPlain(player.entity.position);
+                    //std::cout << closestPlain.x << " " << closestPlain.y << " " << closestPlain.z << " " << closestPlain.w << std::endl;
+                    float distToClosestPlain = currBlockCollider.getDistToPlain(closestPlain, player.entity.position);
+                    if (distToClosestPlain <= 0.30f) {
+                        std::cout << "Near plain " << closestPlain.x << " " << closestPlain.y << " " << closestPlain.z << " " << closestPlain.w << std::endl;
+                        
+                        //player.entity.position = currPosition;
+                        if (closestPlain.x != 0){
+                            
+                        }
+                        if (closestPlain.y != 0){
+                            player.entity.position.y -= 0.3f * closestPlain.y;
+                            fall = false;
+                        }
+                        if (closestPlain.z != 0) {
+
+                        }
+                    }
                 }
             }
         }
 
         //debug
         //std::cout << player.camera.Position.x << " " << player.camera.Position.y << " " << player.camera.Position.z << std::endl;
-        //std::cout << player.entity.position.x << " " << player.entity.position.y << " " << player.entity.position.z << std::endl;
+        std::cout << player.entity.position.x << " " << player.entity.position.y << " " << player.entity.position.z << std::endl;
         
-        //Это для того чтоб рисовать игрока
-        /* {
+        //player draw
+        /*{
             playerShader.use();
             glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
             playerShader.setMat4("projection", projection);
@@ -156,7 +181,7 @@ int main()
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }*/
 
-        player.fall(fall);
+        player.fall(fall, deltaTime);
         player.entity.updateCollider();
         player.camera.update(glm::vec3(player.entity.position.x, player.entity.position.y + player.entity.height / 2, player.entity.position.z));
         
