@@ -3,10 +3,10 @@
 #include "block.h"
 #include "chunk.h"
 #include "camera.h"
-#include "collider.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <vector>
 #include "texture.h"
 
 const unsigned int WIDTH = 1280;
@@ -21,20 +21,14 @@ float lastY = HEIGHT / 2;
 
 Player player;
 
+Chunk chunk;
+
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        player.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        player.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        player.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        player.ProcessKeyboard(RIGHT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        player.ProcessKeyboard(UP, deltaTime);
+
+    player.processMovement(window, deltaTime, chunk);
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -56,6 +50,15 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
     yoffset *= sensitivity;
 
     player.camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+int sgn(float a)
+{
+    if (a > 0)
+        return 1;
+    else if (a < 0)
+        return -1;
+    else return 0;
 }
 
 int main()
@@ -83,12 +86,13 @@ int main()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glEnable(GL_DEPTH_TEST);
 
-    Chunk chunk;
     unsigned int VBOs[2], VAOs[2];
+    
     Shader containerShader("vertexContainer.glsl", "fragmentContainer.glsl");
     Block container(VAOs[0], VBOs[0]);
+    
     Shader playerShader("playerVertex.glsl", "playerFragment.glsl");
-    player = Player(glm::vec3(0.0f, 0.5f, 0.0f), VAOs[1], VBOs[1]);
+    player = Player(glm::vec3(0.0f, -0.2f, 0.0f), VAOs[1], VBOs[1]);
 
     Texture playerTexture = Texture("flAOQJ7reKc.jpg");
     playerShader.use();
@@ -99,16 +103,11 @@ int main()
     containerShader.setInt("texture1", 1);
 
     while (!glfwWindowShouldClose(window))
-    {
-        player.setFly(false);
-        bool fall = true;
-        glm::vec4 closestPlain;
-        glm::vec3 currPosition = player.entity.position;
+    {   
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        processInput(window);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -125,47 +124,21 @@ int main()
             glm::mat4 view = player.camera.GetViewMatrix();
             containerShader.setMat4("view", view);
             glBindVertexArray(VAOs[0]);
-            glm::mat4 model;
-            for (int i = 0; i < 29; i++) {
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, chunk.coordinate[i]);
+            for (int i = 0; i < chunk.coordinate.size(); i++) 
+            {
+                glm::vec3 coord = chunk.coordinate[i];
+                
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, coord);
                 containerShader.setMat4("model", model);
                 glDrawArrays(GL_TRIANGLES, 0, 36);
 
-                Collider currBlockCollider(chunk.coordinate[i], 1.0f, 1.0f, 1.0f, container.getVertices(), container.getVerticesSize());
-                bool collisionX = false;
-                bool collisionY = false;
-                bool collisionZ = false;
-                player.checkCollisionAABB(collisionX, collisionY, collisionZ, currBlockCollider);
-                if (collisionX && collisionY && collisionZ)
-                {
-                    std::cout << "Potential collision with " << chunk.coordinate[i].x << " " << chunk.coordinate[i].y << " " << chunk.coordinate[i].z << std::endl;
-                    //std::cout << currBlockCollider.distance(player.entity.position) << std::endl;
-                    closestPlain = currBlockCollider.getClosestPlain(player.entity.position);
-                    //std::cout << closestPlain.x << " " << closestPlain.y << " " << closestPlain.z << " " << closestPlain.w << std::endl;
-                    float distToClosestPlain = currBlockCollider.getDistToPlain(closestPlain, player.entity.position);
-                    if (distToClosestPlain <= 0.30f) {
-                        std::cout << "Near plain " << closestPlain.x << " " << closestPlain.y << " " << closestPlain.z << " " << closestPlain.w << std::endl;
-                        
-                        //player.entity.position = currPosition;
-                        if (closestPlain.x != 0){
-                            
-                        }
-                        if (closestPlain.y != 0){
-                            player.entity.position.y -= 0.3f * closestPlain.y;
-                            fall = false;
-                        }
-                        if (closestPlain.z != 0) {
-
-                        }
-                    }
-                }
             }
         }
 
         //debug
+        std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
         //std::cout << player.camera.Position.x << " " << player.camera.Position.y << " " << player.camera.Position.z << std::endl;
-        std::cout << player.entity.position.x << " " << player.entity.position.y << " " << player.entity.position.z << std::endl;
         
         //player draw
         /*{
@@ -180,15 +153,20 @@ int main()
             playerShader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }*/
-
-        player.fall(fall, deltaTime);
-        player.entity.updateCollider();
-        player.camera.update(glm::vec3(player.entity.position.x, player.entity.position.y + player.entity.height / 2, player.entity.position.z));
+ 
+        processInput(window);
+        player.camera.update(glm::vec3(player.position.x, player.position.y + HEIGHT_Y / 2, player.position.z));
         
         std::cout << "-------------------------------" << std::endl;
         
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    glDeleteVertexArrays(2, VAOs);
+    glDeleteBuffers(2, VBOs);
+
+    glfwTerminate();
+
 	return 0;
 }

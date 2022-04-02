@@ -6,8 +6,11 @@ Player::Player()
 }
 
 Player::Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO) :
-	fly(false), grounded(false), entity(position, WIDTH_X, HEIGHT_Y, WIDTH_Z, vertices, sizeof(vertices) / sizeof(float)), camera(glm::vec3(entity.position.x, entity.position.y + entity.height / 2, entity.position.z))
+	camera(glm::vec3(position.x, position.y + HEIGHT_Y / 2, position.z))
 {
+	this->position = position;
+	state = MIDAIR;
+
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 
@@ -26,59 +29,106 @@ Player::Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO) :
 	glEnableVertexAttribArray(2);
 }
 
-void Player::ProcessKeyboard(Movement direction, float deltaTime)
+void Player::processMovement(GLFWwindow* window, float deltaTime, Chunk v)
 {
-	float velocity = 2.0f * deltaTime;
-	if (direction == FORWARD){
-		entity.position += camera.Front * velocity;
-	}
-	else if (direction == BACKWARD){
-		entity.position -= camera.Front * velocity;
-	}
-	else if (direction == RIGHT){
-		//Это для финальной версии
-		//Position += glm::cross(directionVec, glm::vec3(0.0f, 1.0f, 0.0f)) * velocity;
-		entity.position += camera.Right * velocity;
-	}
-	else if (direction == LEFT){
-		//Это для финальной версии
-		//Position += glm::cross(directionVec, glm::vec3(0.0f, 1.0f, 0.0f)) * velocity;
-		entity.position -= camera.Right * velocity;
-	}
-	else if (direction == UP) {
-		if (grounded) {
-			//std::cout << "jump" << std::endl;
-			entity.position.y += 500.0f * deltaTime;
+	glm::vec3 motion = glm::vec3(0.0f);
+
+	if (state == STANDING) {
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			std::cout << "jump" << std::endl;
+			state = MIDAIR;
+			yVelocity = 0.18f;
 		}
-		grounded = false;
 	}
+	else if (state == FLYING) {
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			motion += glm::vec3(0.0f, 1.0f, 0.0f) * deltaTime;
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+			motion -= glm::vec3(0.0f, 1.0f, 0.0f) * deltaTime;
+		}
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		motion += glm::normalize(glm::vec3(camera.Front.x, 0.0f, camera.Front.z)) * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		motion -= glm::normalize(glm::vec3(camera.Front.x, 0.0f, camera.Front.z)) * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		motion -= glm::normalize(glm::vec3(camera.Right.x, 0.0f, camera.Right.z)) * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		motion += glm::normalize(glm::vec3(camera.Right.x, 0.0f, camera.Right.z)) * deltaTime;
+
+	switch (state)
+	{
+	case MIDAIR:
+		yVelocity -= 0.8f * deltaTime;
+		break;
+	case SWIMING:
+		break;
+	default:
+		break;
+	}
+
+	motion = glm::vec3(motion.x, motion.y + yVelocity, motion.z);
+	applyMotion(motion, v);
 }
 
-void Player::checkCollisionAABB(bool& collisionX, bool& collisionY, bool& collisionZ, Collider other)
+bool Player::AABB(float one, float two)
 {
-	collisionX = entity.collider.AABBCollisionX(other);
-	collisionY = entity.collider.AABBCollisionY(other);
-	collisionZ = entity.collider.AABBCollisionZ(other);
+	return (one - (two + 0.5f)) * (one - (two - 0.5f)) <= 0;
 }
 
-void Player::fall(bool fall, float deltaTime)
+void Player::applyMotion(glm::vec3 motion, Chunk v)
 {
-	if (fall && !fly) {
-		entity.position.y -= 1.0f * deltaTime;
-		grounded = false;
-	}
-	else if (fly) {
+	if (motion.y <= -1.0f)
+		motion.y = -1.0f;
+	
+	glm::vec3 newPosition = position + motion;
+	glm::vec3 perpendicularMotion = glm::vec3(-motion.z, 0.0f, motion.x);
 
-	}
-	else {
-		entity.position.y = round(entity.position.y * 10) / 10;
-		grounded = true;
-	}
-}
+	glm::vec3 top = glm::vec3(newPosition.x + 0.3f, newPosition.y + 0.3f, newPosition.z + 0.3f);
+	glm::vec3 bottom = glm::vec3(newPosition.x - 0.3f, newPosition.y - 0.3f, newPosition.z - 0.3f);
 
-void Player::setFly(bool set)
-{
-	fly = set;
+	bool overallColliding = false;
+
+
+	for (int i = 0; i < v.coordinate.size(); i++)
+	{
+		glm::vec3 coord = v.coordinate[i];
+		bool collidingX = AABB(top.x, coord.x) || AABB(bottom.x, coord.x);
+		bool collidingY = AABB(top.y, coord.y) || AABB(bottom.y, coord.y);
+		bool collidingZ = AABB(top.z, coord.z) || AABB(bottom.z, coord.z);
+		bool colliding = collidingX && collidingY && collidingZ;
+		if (colliding) {
+			std::cout << "colliding" << std::endl;
+			overallColliding = true;
+			if (coord.y + 0.5f < newPosition.y) {
+				state = STANDING;
+				yVelocity = 0.0f;
+				std::cout << "Collision on bottom" << std::endl;
+				newPosition.y = round(ceil(position.y * 100) / 10) / 10;
+			}
+			if ((coord.y - 0.5f <= newPosition.y && newPosition.y <= coord.y + 0.5f)) {
+				std::cout << "Coliision on side" << std::endl;
+				if (coord.x - 0.5f <= newPosition.x && newPosition.x <= coord.x + 0.5f)
+					newPosition.z = round(ceil(position.z * 100) / 10) / 10;
+				if (coord.z - 0.5f <= newPosition.z && newPosition.z <= coord.z + 0.5f)
+					newPosition.x = round(ceil(position.x * 100) / 10) / 10;
+			}
+			if (coord.y - 0.5f > newPosition.y) {
+				std::cout << "Collision on top" << std::endl;
+				newPosition.y = round(ceil(position.y * 100) / 10) / 10;
+				state = MIDAIR;
+			}
+		}
+	}
+
+	if (!overallColliding) {
+		std::cout << "Not colliding" << std::endl;
+		state = MIDAIR;
+	}
+
+	position = newPosition;
 }
 
 Player::~Player()

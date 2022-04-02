@@ -1,15 +1,11 @@
 #pragma once
 #include "shader.h"
-#include "entity.h"
 #include "shader.h"
 #include "texture.h"
 
 class Block
 {
 public:
-	//Entity entity;
-	Shader shader;
-	//Texture texture;
     Block(unsigned int& VAO, unsigned int& VBO);
     float* getVertices();
     int getVerticesSize();
