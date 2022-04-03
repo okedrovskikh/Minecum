@@ -92,70 +92,70 @@ void Player::applyMotion(glm::vec3 motion, std::vector<glm::vec3> v)
 {
 	if (motion.y <= -1.0f)
 		motion.y = -1.0f;
-	
-	glm::vec3 newPosition = position + motion;
 
-	glm::vec3 top = glm::vec3(newPosition.x + WIDTH_X / 2, newPosition.y + HEIGHT_Y / 2 , newPosition.z + WIDTH_Z / 2);
-	glm::vec3 bottom = glm::vec3(newPosition.x - WIDTH_X / 2, newPosition.y - HEIGHT_Y / 2, newPosition.z - WIDTH_Z / 2);
-
-	bool collisionOnBottom = false;
-	bool collisionOnSide = false;
-	bool overallColliding = false;
+	bool overallCollision = false;
 
 	int size = v.size();
+    //a little problem with angle, cause i need to fall, but for some reason i stand in the air
 	for (int i = 0; i < size; i++)
 	{
 		glm::vec3 coord = v[i];
-		//std::cout << coord.x << " " << coord.y << " " << coord.z << std::endl;
-		bool collidingX = AABB(top.x, coord.x) || AABB(bottom.x, coord.x) || AABB_(coord.x, newPosition.x) ;
-		bool collidingY = AABB(top.y, coord.y) || AABB(bottom.y, coord.y) || AABB_(coord.y, newPosition.y, HEIGHT_Y / 2);
-		bool collidingZ = AABB(top.z, coord.z) || AABB(bottom.z, coord.z) || AABB_(coord.z, newPosition.z);
-		bool colliding = collidingX && collidingY && collidingZ;
-		if (colliding) {
-			overallColliding = true;
-			//error somewhere in that if/else cicle
-			//probably cause newPosition's y should be in range of coord's y
-			if (coord.y + 0.5f < newPosition.y) {
-				state = STANDING;
+
+		if (motion.x != 0.0f) {
+			glm::vec3 top = glm::vec3(position.x + motion.x + WIDTH_X / 2, position.y + HEIGHT_Y / 2, position.z + WIDTH_Z / 2);
+			glm::vec3 bottom = glm::vec3(position.x + motion.x - WIDTH_X / 2, position.y - HEIGHT_Y / 2, position.z - WIDTH_Z / 2);
+
+			bool collisionX = AABB(top.x, coord.x) || AABB(bottom.x, coord.x) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
+			bool collisionY = AABB(top.y, coord.y) || AABB(bottom.y, coord.y) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
+			bool collisionZ = AABB(top.z, coord.z) || AABB(bottom.z, coord.z) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+			bool collision = collisionX && collisionY && collisionZ;
+			if (collision) {
+				std::cout << "Collision on X" << std::endl;
+				motion.x = 0.0f;
+			}
+		}
+		if (motion.y != 0.0f) {
+			glm::vec3 top = glm::vec3(position.x + WIDTH_X / 2, position.y + motion.y + HEIGHT_Y / 2, position.z + WIDTH_Z / 2);
+			glm::vec3 bottom = glm::vec3(position.x - WIDTH_X / 2, position.y + motion.y - HEIGHT_Y / 2, position.z - WIDTH_Z / 2);
+
+			bool collisionX = AABB(top.x, coord.x) || AABB(bottom.x, coord.x) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
+			bool collisionY = AABB(top.y, coord.y) || AABB(bottom.y, coord.y) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
+			bool collisionZ = AABB(top.z, coord.z) || AABB(bottom.z, coord.z) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+			bool collision = collisionX && collisionY && collisionZ;
+			if (collision) {
+				if (coord.y + 0.5f <= position.y + motion.y) {
+					std::cout << "Collision on bottom Y " << coord.x << " " << coord.y << " " << coord.z << std::endl;
+					state = STANDING;
+				}
+				else if (position.y + motion.y <= coord.y - 0.5f) {
+					std::cout << "Collision on top Y" << std::endl;
+					state = MIDAIR;
+				}
+				motion.y = 0.0f;
 				yVelocity = 0.0f;
-				std::cout << "Collision on bottom " << coord.x << " " << coord.y << " " << coord.z << std::endl;
-				newPosition.y = round(ceil(position.y * 100) / 10) / 10;
-				collisionOnBottom = true;
+				overallCollision = true;
 			}
-			else if (coord.y - 0.5f >= newPosition.y) {
-				std::cout << "Collision on top" << std::endl;
-				newPosition.y = round(ceil(position.y * 100) / 10) / 10;
-				state = MIDAIR;
-			}
-			if (coord.y - 0.5f <= newPosition.y && newPosition.y <= coord.y + 0.5f) {
-				std::cout << "Collision on side" << std::endl;
-				if (coord.x - 0.5f <= newPosition.x && newPosition.x <= coord.x + 0.5f)
-					newPosition.z = round(ceil(position.z * 100) / 10) / 10;
-				else if (coord.z - 0.5f <= newPosition.z && newPosition.z < coord.z + 0.5f)
-					newPosition.x = round(ceil(position.x * 100) / 10) / 10;
-				collisionOnSide = true;
-			}
-			else if (newPosition.y - HEIGHT_Y / 2 <= coord.y && coord.y <= newPosition.y + HEIGHT_Y / 2) {
-				std::cout << "Collision on side" << std::endl;
-				if (coord.x - 0.5f <= newPosition.x && newPosition.x <= coord.x + 0.5f)
-					newPosition.z = round(ceil(position.z * 100) / 10) / 10;
-				else if (coord.z - 0.5f <= newPosition.z && newPosition.z < coord.z + 0.5f)
-					newPosition.x = round(ceil(position.x * 100) / 10) / 10;
-				collisionOnSide = true;
+		}
+		if (motion.z != 0.0f) {
+			glm::vec3 top = glm::vec3(position.x + WIDTH_X / 2, position.y + HEIGHT_Y / 2, position.z + motion.z + WIDTH_Z / 2);
+			glm::vec3 bottom = glm::vec3(position.x - WIDTH_X / 2, position.y - HEIGHT_Y / 2, position.z + motion.z - WIDTH_Z / 2);
+
+			bool collisionX = AABB(top.x, coord.x) || AABB(bottom.x, coord.x) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
+			bool collisionY = AABB(top.y, coord.y) || AABB(bottom.y, coord.y) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
+			bool collisionZ = AABB(top.z, coord.z) || AABB(bottom.z, coord.z) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+			bool collision = collisionX && collisionY && collisionZ;
+			if (collision) {
+				std::cout << "Collision on Z" << std::endl;
+				motion.z = 0.0f;
 			}
 		}
 	}
 
-	if (collisionOnSide && !collisionOnBottom) {
+	if (!overallCollision) {
 		state = MIDAIR;
 	}
 
-	if (!overallColliding) {
-		std::cout << "Not colliding" << std::endl;
-		state = MIDAIR;
-	}
-
-	position = newPosition;
+	position += motion;
 }
 
 Player::~Player()
