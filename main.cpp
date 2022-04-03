@@ -1,13 +1,4 @@
-#include "player.h"
-#include "shader.h"
-#include "block.h"
-#include "chunk.h"
-#include "camera.h"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <iostream>
-#include <vector>
-#include "texture.h"
+#include "game.h"
 
 const unsigned int WIDTH = 1280;
 const unsigned int HEIGHT = 720;
@@ -27,8 +18,8 @@ void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
-    player.processMovement(window, deltaTime, chunk);
+    
+    player.processMovement(window, deltaTime, chunk.coordinate);
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -63,28 +54,14 @@ int sgn(float a)
 
 int main()
 {
-    if (!glfwInit())
-    {
-        std::cout << "Failed to initialize GLFW" << std::endl;
-    }
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    GLFWwindow* window = windowInit(WIDTH, HEIGHT, "minecum");
 
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "minecum", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-    }
-    glfwMakeContextCurrent(window);
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-    }
     glfwSetCursorPosCallback(window, mouseCallback);
+
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     glEnable(GL_DEPTH_TEST);
+
 
     unsigned int VBOs[2], VAOs[2];
     
@@ -92,7 +69,7 @@ int main()
     Block container(VAOs[0], VBOs[0]);
     
     Shader playerShader("playerVertex.glsl", "playerFragment.glsl");
-    player = Player(glm::vec3(0.0f, -0.2f, 0.0f), VAOs[1], VBOs[1]);
+    player = Player(glm::vec3(0.0f, 3.0f, 0.0f), VAOs[1], VBOs[1]);
 
     Texture playerTexture = Texture("flAOQJ7reKc.jpg");
     playerShader.use();
@@ -101,6 +78,7 @@ int main()
     Texture containerTexture = Texture("container.jpg");
     containerShader.use();
     containerShader.setInt("texture1", 1);
+
 
     while (!glfwWindowShouldClose(window))
     {   
@@ -124,7 +102,8 @@ int main()
             glm::mat4 view = player.camera.GetViewMatrix();
             containerShader.setMat4("view", view);
             glBindVertexArray(VAOs[0]);
-            for (int i = 0; i < chunk.coordinate.size(); i++) 
+            int size = chunk.coordinate.size();
+            for (int i = 0; i < size; i++) 
             {
                 glm::vec3 coord = chunk.coordinate[i];
                 
@@ -132,13 +111,11 @@ int main()
                 model = glm::translate(model, coord);
                 containerShader.setMat4("model", model);
                 glDrawArrays(GL_TRIANGLES, 0, 36);
-
             }
         }
 
         //debug
-        std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
-        //std::cout << player.camera.Position.x << " " << player.camera.Position.y << " " << player.camera.Position.z << std::endl;
+        //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
         
         //player draw
         /*{
@@ -149,15 +126,15 @@ int main()
             playerShader.setMat4("view", view);
             glBindVertexArray(VAOs[1]);
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, player.entity.position);
+            model = glm::translate(model, player.position);
             playerShader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }*/
  
         processInput(window);
-        player.camera.update(glm::vec3(player.position.x, player.position.y + HEIGHT_Y / 2, player.position.z));
+        player.updateCamera();
         
-        std::cout << "-------------------------------" << std::endl;
+        //std::cout << "-------------------------------" << std::endl;
         
         glfwSwapBuffers(window);
         glfwPollEvents();

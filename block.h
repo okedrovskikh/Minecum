@@ -7,8 +7,6 @@ class Block
 {
 public:
     Block(unsigned int& VAO, unsigned int& VBO);
-    float* getVertices();
-    int getVerticesSize();
     ~Block();
 private:
     float vertices[288] = {

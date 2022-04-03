@@ -20,7 +20,7 @@ public:
 	Camera camera;
 	Player();
     Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO);
-    void processMovement(GLFWwindow* window, float deltaTime, std::vector<glm::vec3> v);
+    void processMovement(GLFWwindow* window, float deltaTime, const std::vector<glm::vec3>& v);
     void updateCamera();
     ~Player();
 private:
@@ -69,9 +69,6 @@ private:
         -0.3f,  0.3f,  0.3f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         -0.3f,  0.3f, -0.3f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f
     };
-    void applyMotion(glm::vec3 motion, std::vector<glm::vec3> v);
-    bool AABB(float one, float two);
+    void applyMotion(glm::vec3 motion, const std::vector<glm::vec3>& v);
     bool AABB_(float one, float two, float par = 0.3f);
 };
-
-float distance(glm::vec3 p1, glm::vec3 p2);

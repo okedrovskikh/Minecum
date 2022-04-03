@@ -29,15 +29,14 @@ Player::Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO) : camer
 	glEnableVertexAttribArray(2);
 }
 
-void Player::processMovement(GLFWwindow* window, float deltaTime, std::vector<glm::vec3> v)
+void Player::processMovement(GLFWwindow* window, float deltaTime, const std::vector<glm::vec3>& v)
 {
 	glm::vec3 motion = glm::vec3(0.0f);
 
 	if (state == STANDING) {
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-			std::cout << "jump" << std::endl;
 			state = MIDAIR;
-			yVelocity = 0.18f;
+			yVelocity = 0.12f;
 		}
 	}
 	else if (state == FLYING) {
@@ -70,7 +69,9 @@ void Player::processMovement(GLFWwindow* window, float deltaTime, std::vector<gl
 	}
 
 	motion = glm::vec3(motion.x, motion.y + yVelocity, motion.z);
-	applyMotion(motion, v);
+
+	if (motion.x != 0.0f || motion.y != 0.0f || motion.z != 0.0f)
+		applyMotion(motion, v);
 }
 
 void Player::updateCamera()
@@ -78,17 +79,12 @@ void Player::updateCamera()
 	camera.update(glm::vec3(position.x, position.y + HEIGHT_Y / 2 - 0.13f, position.z));
 }
 
-bool Player::AABB(float one, float two)
-{
-	return (one - (two + 0.5f)) * (one - (two - 0.5f)) <= 0;
-}
-
 bool Player::AABB_(float one, float two, float par)
 {
 	return (one - (two + par)) * (one - (two - par)) <= 0;
 }
 
-void Player::applyMotion(glm::vec3 motion, std::vector<glm::vec3> v)
+void Player::applyMotion(glm::vec3 motion, const std::vector<glm::vec3>& v)
 {
 	if (motion.y <= -1.0f)
 		motion.y = -1.0f;
@@ -96,7 +92,7 @@ void Player::applyMotion(glm::vec3 motion, std::vector<glm::vec3> v)
 	bool overallCollision = false;
 
 	int size = v.size();
-    //a little problem with angle, cause i need to fall, but for some reason i stand in the air
+    //a little problem with block's angles, cause when i need to fall for some reason i stand in the air
 	for (int i = 0; i < size; i++)
 	{
 		glm::vec3 coord = v[i];
@@ -105,12 +101,11 @@ void Player::applyMotion(glm::vec3 motion, std::vector<glm::vec3> v)
 			glm::vec3 top = glm::vec3(position.x + motion.x + WIDTH_X / 2, position.y + HEIGHT_Y / 2, position.z + WIDTH_Z / 2);
 			glm::vec3 bottom = glm::vec3(position.x + motion.x - WIDTH_X / 2, position.y - HEIGHT_Y / 2, position.z - WIDTH_Z / 2);
 
-			bool collisionX = AABB(top.x, coord.x) || AABB(bottom.x, coord.x) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
-			bool collisionY = AABB(top.y, coord.y) || AABB(bottom.y, coord.y) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
-			bool collisionZ = AABB(top.z, coord.z) || AABB(bottom.z, coord.z) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
-			bool collision = collisionX && collisionY && collisionZ;
-			if (collision) {
-				std::cout << "Collision on X" << std::endl;
+			bool collisionX = AABB_(top.x, coord.x, 0.5f) || AABB_(bottom.x, coord.x, 0.5f) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
+			bool collisionY = AABB_(top.y, coord.y, 0.5f) || AABB_(bottom.y, coord.y, 0.5f) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
+			bool collisionZ = AABB_(top.z, coord.z, 0.5f) || AABB_(bottom.z, coord.z, 0.5f) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+			if (collisionX && collisionY && collisionZ) {
+				//std::cout << "Collision on X" << std::endl;
 				motion.x = 0.0f;
 			}
 		}
@@ -118,17 +113,16 @@ void Player::applyMotion(glm::vec3 motion, std::vector<glm::vec3> v)
 			glm::vec3 top = glm::vec3(position.x + WIDTH_X / 2, position.y + motion.y + HEIGHT_Y / 2, position.z + WIDTH_Z / 2);
 			glm::vec3 bottom = glm::vec3(position.x - WIDTH_X / 2, position.y + motion.y - HEIGHT_Y / 2, position.z - WIDTH_Z / 2);
 
-			bool collisionX = AABB(top.x, coord.x) || AABB(bottom.x, coord.x) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
-			bool collisionY = AABB(top.y, coord.y) || AABB(bottom.y, coord.y) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
-			bool collisionZ = AABB(top.z, coord.z) || AABB(bottom.z, coord.z) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
-			bool collision = collisionX && collisionY && collisionZ;
-			if (collision) {
+			bool collisionX = AABB_(top.x, coord.x, 0.5f) || AABB_(bottom.x, coord.x, 0.5f) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
+			bool collisionY = AABB_(top.y, coord.y, 0.5f) || AABB_(bottom.y, coord.y, 0.5f) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
+			bool collisionZ = AABB_(top.z, coord.z, 0.5f) || AABB_(bottom.z, coord.z, 0.5f) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+			if (collisionX && collisionY && collisionZ) {
 				if (coord.y + 0.5f <= position.y + motion.y) {
-					std::cout << "Collision on bottom Y " << coord.x << " " << coord.y << " " << coord.z << std::endl;
+					//std::cout << "Collision on bottom Y " << coord.x << " " << coord.y << " " << coord.z << std::endl;
 					state = STANDING;
 				}
 				else if (position.y + motion.y <= coord.y - 0.5f) {
-					std::cout << "Collision on top Y" << std::endl;
+					//std::cout << "Collision on top Y" << std::endl;
 					state = MIDAIR;
 				}
 				motion.y = 0.0f;
@@ -140,12 +134,11 @@ void Player::applyMotion(glm::vec3 motion, std::vector<glm::vec3> v)
 			glm::vec3 top = glm::vec3(position.x + WIDTH_X / 2, position.y + HEIGHT_Y / 2, position.z + motion.z + WIDTH_Z / 2);
 			glm::vec3 bottom = glm::vec3(position.x - WIDTH_X / 2, position.y - HEIGHT_Y / 2, position.z + motion.z - WIDTH_Z / 2);
 
-			bool collisionX = AABB(top.x, coord.x) || AABB(bottom.x, coord.x) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
-			bool collisionY = AABB(top.y, coord.y) || AABB(bottom.y, coord.y) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
-			bool collisionZ = AABB(top.z, coord.z) || AABB(bottom.z, coord.z) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
-			bool collision = collisionX && collisionY && collisionZ;
-			if (collision) {
-				std::cout << "Collision on Z" << std::endl;
+			bool collisionX = AABB_(top.x, coord.x, 0.5f) || AABB_(bottom.x, coord.x, 0.5f) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
+			bool collisionY = AABB_(top.y, coord.y, 0.5f) || AABB_(bottom.y, coord.y, 0.5f) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
+			bool collisionZ = AABB_(top.z, coord.z, 0.5f) || AABB_(bottom.z, coord.z, 0.5f) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+			if (collisionX && collisionY && collisionZ) {
+				//std::cout << "Collision on Z" << std::endl;
 				motion.z = 0.0f;
 			}
 		}
@@ -161,9 +154,4 @@ void Player::applyMotion(glm::vec3 motion, std::vector<glm::vec3> v)
 Player::~Player()
 {
 
-}
-
-float distance(glm::vec3 p1, glm::vec3 p2)
-{
-	return sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.x - p2.z));
 }

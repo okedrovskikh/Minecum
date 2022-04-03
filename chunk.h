@@ -24,9 +24,6 @@ public:
 		glm::vec3(1.0f,  2.0f, 1.0f), glm::vec3(1.0f,  3.0f, 1.0f)
 	};
 	Chunk();
-	bool isInChunk(glm::vec3 p);
-	bool isInChunk(float x, float y, float z);
-	bool isInChunk(int x, int y, int z);
 	~Chunk();
 private:
 };

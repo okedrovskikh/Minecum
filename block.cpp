@@ -20,16 +20,6 @@ Block::Block(unsigned int& VAO, unsigned int& VBO)
     glEnableVertexAttribArray(2);
 }
 
-float* Block::getVertices()
-{
-    return vertices;
-}
-
-int Block::getVerticesSize()
-{
-    return sizeof(vertices) / sizeof(float);
-}
-
 Block::~Block()
 {
 
