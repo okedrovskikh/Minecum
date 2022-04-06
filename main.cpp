@@ -43,13 +43,12 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
     player.camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-int sgn(float a)
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (a > 0)
-        return 1;
-    else if (a < 0)
-        return -1;
-    else return 0;
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+        player.processLeftClick(chunk.coordinate);
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+        player.processRightClick(chunk.coordinate);
 }
 
 int main()
@@ -57,17 +56,21 @@ int main()
     GLFWwindow* window = windowInit(WIDTH, HEIGHT, "minecum");
 
     glfwSetCursorPosCallback(window, mouseCallback);
-
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     glEnable(GL_DEPTH_TEST);
 
 
-    unsigned int VBOs[2], VAOs[2];
-    
+    unsigned int VBOs[3], VAOs[3];
+
     Shader containerShader("vertexContainer.glsl", "fragmentContainer.glsl");
-    Block container(VAOs[0], VBOs[0]);
-    
+    BlockPrototype container(VAOs[0], VBOs[0]);
+
+    Texture containerTexture = Texture("container.jpg");
+    containerShader.use();
+    containerShader.setInt("texture1", 1);
+
     Shader playerShader("playerVertex.glsl", "playerFragment.glsl");
     player = Player(glm::vec3(0.0f, 3.0f, 0.0f), VAOs[1], VBOs[1]);
 
@@ -75,9 +78,9 @@ int main()
     playerShader.use();
     playerShader.setInt("playerTexture", 0);
 
-    Texture containerTexture = Texture("container.jpg");
-    containerShader.use();
-    containerShader.setInt("texture1", 1);
+    Shader crosshairShader("crosshairVertex.glsl", "crosshairFragment.glsl");
+    Crosshair crosshair(VAOs[2], VBOs[2]);
+
 
 
     while (!glfwWindowShouldClose(window))
@@ -95,11 +98,12 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, containerTexture.ID);
         
+        //chunk draw
         {
             containerShader.use();
             glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
             containerShader.setMat4("projection", projection);
-            glm::mat4 view = player.camera.GetViewMatrix();
+            glm::mat4 view = player.camera.getViewMatrix();
             containerShader.setMat4("view", view);
             glBindVertexArray(VAOs[0]);
             int size = chunk.coordinate.size();
@@ -110,13 +114,24 @@ int main()
                 glm::mat4 model = glm::mat4(1.0f);
                 model = glm::translate(model, coord);
                 containerShader.setMat4("model", model);
+
+                if (false)
+                    containerShader.setFloat("chosen", 0.2f);
+                else
+                    containerShader.setFloat("chosen", 1.0f);
+
                 glDrawArrays(GL_TRIANGLES, 0, 36);
             }
+
         }
 
-        //debug
-        //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
-        
+        //crosshair draw
+        {
+            crosshairShader.use();
+            glBindVertexArray(VAOs[2]);
+            glDrawArrays(GL_TRIANGLES, 0, 12);
+        }
+
         //player draw
         /*{
             playerShader.use();
@@ -131,6 +146,9 @@ int main()
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }*/
  
+        //debug
+        //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
+        
         processInput(window);
         player.updateCamera();
         

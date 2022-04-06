@@ -69,9 +69,50 @@ void Player::processMovement(GLFWwindow* window, float deltaTime, const std::vec
 	}
 
 	motion = glm::vec3(motion.x, motion.y + yVelocity, motion.z);
+	applyMotion(motion, v);
+}
 
-	if (motion.x != 0.0f || motion.y != 0.0f || motion.z != 0.0f)
-		applyMotion(motion, v);
+void Player::processLeftClick(std::vector<glm::vec3>& v)
+{
+	float shortest = std::numeric_limits<float>::max();
+	int result = NULL;
+	bool done = false;
+
+	updateCamera();
+
+	int size = v.size();
+	for (int i = 0; i < size; i++)
+	{
+		glm::vec3 coord = v[i];
+
+		for (int t = 0; t < 10; t++) {
+			float tmp = (float)t / 10;
+
+			bool collisionX = AABB_(camera.Position.x + camera.Front.x * tmp, coord.x, 0.5f);
+			bool collisionY = AABB_(camera.Position.y + camera.Front.y * tmp, coord.y, 0.5f);
+			bool collisionZ = AABB_(camera.Position.z + camera.Front.z * tmp, coord.z, 0.5f);
+
+			if (collisionX && collisionY && collisionZ){
+				float dist = glm::distance(v[i], camera.Position);
+				if (dist < shortest) {
+					shortest = dist;
+					result = i;
+					done = true;
+				}
+				break;
+			}
+		}
+	}
+
+	if (done) {
+		v.erase(v.begin() + result);
+		std::cout << v[result].x << " " << v[result].y << " " << v[result].z << std::endl;
+	}
+}
+
+void Player::processRightClick(std::vector<glm::vec3>& v)
+{
+	v.push_back(camera.Position + camera.Front);
 }
 
 void Player::updateCamera()
@@ -79,9 +120,9 @@ void Player::updateCamera()
 	camera.update(glm::vec3(position.x, position.y + HEIGHT_Y / 2 - 0.13f, position.z));
 }
 
-bool Player::AABB_(float one, float two, float par)
+bool Player::AABB_(float one, float two, float parameter)
 {
-	return (one - (two + par)) * (one - (two - par)) <= 0;
+	return (one - (two + parameter)) * (one - (two - parameter)) <= 0;
 }
 
 void Player::applyMotion(glm::vec3 motion, const std::vector<glm::vec3>& v)
@@ -105,7 +146,6 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<glm::vec3>& v)
 			bool collisionY = AABB_(top.y, coord.y, 0.5f) || AABB_(bottom.y, coord.y, 0.5f) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
 			bool collisionZ = AABB_(top.z, coord.z, 0.5f) || AABB_(bottom.z, coord.z, 0.5f) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
 			if (collisionX && collisionY && collisionZ) {
-				//std::cout << "Collision on X" << std::endl;
 				motion.x = 0.0f;
 			}
 		}
@@ -116,13 +156,12 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<glm::vec3>& v)
 			bool collisionX = AABB_(top.x, coord.x, 0.5f) || AABB_(bottom.x, coord.x, 0.5f) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
 			bool collisionY = AABB_(top.y, coord.y, 0.5f) || AABB_(bottom.y, coord.y, 0.5f) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
 			bool collisionZ = AABB_(top.z, coord.z, 0.5f) || AABB_(bottom.z, coord.z, 0.5f) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+			
 			if (collisionX && collisionY && collisionZ) {
 				if (coord.y + 0.5f <= position.y + motion.y) {
-					//std::cout << "Collision on bottom Y " << coord.x << " " << coord.y << " " << coord.z << std::endl;
 					state = STANDING;
 				}
 				else if (position.y + motion.y <= coord.y - 0.5f) {
-					//std::cout << "Collision on top Y" << std::endl;
 					state = MIDAIR;
 				}
 				motion.y = 0.0f;
@@ -137,8 +176,8 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<glm::vec3>& v)
 			bool collisionX = AABB_(top.x, coord.x, 0.5f) || AABB_(bottom.x, coord.x, 0.5f) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
 			bool collisionY = AABB_(top.y, coord.y, 0.5f) || AABB_(bottom.y, coord.y, 0.5f) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
 			bool collisionZ = AABB_(top.z, coord.z, 0.5f) || AABB_(bottom.z, coord.z, 0.5f) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+			
 			if (collisionX && collisionY && collisionZ) {
-				//std::cout << "Collision on Z" << std::endl;
 				motion.z = 0.0f;
 			}
 		}
@@ -154,4 +193,13 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<glm::vec3>& v)
 Player::~Player()
 {
 
+}
+
+int sgn(float a)
+{
+	if (a > 0)
+		return 1;
+	else if (a < 0)
+		return -1;
+	else return 0;
 }

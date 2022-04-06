@@ -2,12 +2,14 @@
 #include "shader.h"
 #include "camera.h"
 #include "texture.h"
-#include "block.h"
 #include <vector>
+#include <limits>
 
 const float WIDTH_X = 0.6f;
 const float HEIGHT_Y = 0.6f;
 const float WIDTH_Z = 0.6f;
+
+const float INTERACTION_RADIUS = 2.0f;
 
 enum State {
     STANDING, MIDAIR, SWIMING, FLYING
@@ -21,6 +23,8 @@ public:
 	Player();
     Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO);
     void processMovement(GLFWwindow* window, float deltaTime, const std::vector<glm::vec3>& v);
+    void processLeftClick(std::vector<glm::vec3>& v);
+    void processRightClick(std::vector<glm::vec3>& v);
     void updateCamera();
     ~Player();
 private:
@@ -72,3 +76,5 @@ private:
     void applyMotion(glm::vec3 motion, const std::vector<glm::vec3>& v);
     bool AABB_(float one, float two, float par = 0.3f);
 };
+
+int sgn(float a);

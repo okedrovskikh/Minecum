@@ -5,8 +5,9 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include "block_prototype.h"
 
-const unsigned int SIZE = 16 * 16 * 128;
+const unsigned int SIZE = 6 * 6 * 64;
 
 class Chunk
 {
