@@ -1,7 +1,7 @@
 #pragma once
 #include "player.h"
 #include "shader.h"
-#include "block_prototype.h"
+#include "block.h"
 #include "chunk.h"
 #include "camera.h"
 #include <glad/glad.h>

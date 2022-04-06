@@ -183,7 +183,7 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<glm::vec3>& v)
 		}
 	}
 
-	if (!overallCollision) {
+	if (!overallCollision && state != FLYING) {
 		state = MIDAIR;
 	}
 

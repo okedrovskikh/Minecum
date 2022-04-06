@@ -5,26 +5,14 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "block_prototype.h"
 
-const unsigned int SIZE = 6 * 6 * 64;
+const unsigned int SIZE = 6 * 6 * 16;
 
 class Chunk
 {
 public:
-	std::vector<glm::vec3> coordinate = {
-		glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f,  -1.0f, -1.0f),
-		glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f,  -1.0f, 0.0f),
-		glm::vec3(-1.0f, -1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 1.0f), glm::vec3(1.0f,  -1.0f, 1.0f),
-		glm::vec3(-1.0f, -2.0f, -1.0f), glm::vec3(0.0f, -2.0f, -1.0f), glm::vec3(1.0f, -2.0f, -1.0f),
-		glm::vec3(-1.0f, -2.0f, 0.0f), glm::vec3(0.0f, -2.0f, 0.0f), glm::vec3(1.0f,  -2.0f, 0.0f),
-		glm::vec3(-1.0f, -2.0f, 1.0f), glm::vec3(0.0f, -2.0f, 1.0f), glm::vec3(1.0f,  -2.0f, 1.0f),
-		glm::vec3(-1.0f, -3.0f, -1.0f), glm::vec3(0.0f, -3.0f, -1.0f), glm::vec3(1.0f,  -3.0f, -1.0f),
-		glm::vec3(-1.0f, -3.0f, 0.0f), glm::vec3(0.0f, -3.0f, 0.0f), glm::vec3(1.0f,  0.0f, 1.0f),
-		glm::vec3(-1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -3.0f, 1.0f), glm::vec3(1.0f,  1.0f, 1.0f),
-		glm::vec3(1.0f,  2.0f, 1.0f), glm::vec3(1.0f,  3.0f, 1.0f)
-	};
-	Chunk();
+	std::vector<glm::vec3> coordinate;
+	Chunk(glm::vec3 position);
 	~Chunk();
 private:
 };

@@ -12,7 +12,7 @@ float lastY = HEIGHT / 2;
 
 Player player;
 
-Chunk chunk;
+Chunk chunk(glm::vec3(-3.0f, -14.0f, -3.0f));
 
 void processInput(GLFWwindow* window)
 {
@@ -65,14 +65,13 @@ int main()
     unsigned int VBOs[3], VAOs[3];
 
     Shader containerShader("vertexContainer.glsl", "fragmentContainer.glsl");
-    BlockPrototype container(VAOs[0], VBOs[0]);
-
-    Texture containerTexture = Texture("container.jpg");
-    containerShader.use();
-    containerShader.setInt("texture1", 1);
+    Texture containerTexture("container.jpg");
+    Block container(VAOs[0], VBOs[0], containerShader, containerTexture);
+    container.shader.use();
+    container.shader.setInt("texture1", 1);
 
     Shader playerShader("playerVertex.glsl", "playerFragment.glsl");
-    player = Player(glm::vec3(0.0f, 3.0f, 0.0f), VAOs[1], VBOs[1]);
+    player = Player(glm::vec3(0.0f, 5.0f, 0.0f), VAOs[1], VBOs[1]);
 
     Texture playerTexture = Texture("flAOQJ7reKc.jpg");
     playerShader.use();
@@ -96,15 +95,15 @@ int main()
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, playerTexture.ID);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, containerTexture.ID);
+        glBindTexture(GL_TEXTURE_2D, container.texture.ID);
         
         //chunk draw
         {
-            containerShader.use();
+            container.shader.use();
             glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-            containerShader.setMat4("projection", projection);
+            container.shader.setMat4("projection", projection);
             glm::mat4 view = player.camera.getViewMatrix();
-            containerShader.setMat4("view", view);
+            container.shader.setMat4("view", view);
             glBindVertexArray(VAOs[0]);
             int size = chunk.coordinate.size();
             for (int i = 0; i < size; i++) 
@@ -113,12 +112,12 @@ int main()
                 
                 glm::mat4 model = glm::mat4(1.0f);
                 model = glm::translate(model, coord);
-                containerShader.setMat4("model", model);
+                container.shader.setMat4("model", model);
 
                 if (false)
-                    containerShader.setFloat("chosen", 0.2f);
+                    container.shader.setFloat("chosen", 0.2f);
                 else
-                    containerShader.setFloat("chosen", 1.0f);
+                    container.shader.setFloat("chosen", 1.0f);
 
                 glDrawArrays(GL_TRIANGLES, 0, 36);
             }
@@ -147,7 +146,7 @@ int main()
         }*/
  
         //debug
-        //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
+        std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
         
         processInput(window);
         player.updateCamera();
