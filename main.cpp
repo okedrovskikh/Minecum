@@ -19,7 +19,7 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     
-    player.processMovement(window, deltaTime, chunk.coordinate);
+    player.processMovement(window, deltaTime, chunk);
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -46,14 +46,17 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-        player.processLeftClick(chunk.coordinate);
+        player.processLeftClick(chunk);
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-        player.processRightClick(chunk.coordinate);
+        player.processRightClick(chunk);
 }
 
 int main()
 {
     GLFWwindow* window = windowInit(WIDTH, HEIGHT, "minecum");
+
+    if (window == NULL)
+        return -1;
 
     glfwSetCursorPosCallback(window, mouseCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
@@ -71,15 +74,13 @@ int main()
     container.shader.setInt("texture1", 1);
 
     Shader playerShader("playerVertex.glsl", "playerFragment.glsl");
-    player = Player(glm::vec3(0.0f, 5.0f, 0.0f), VAOs[1], VBOs[1]);
-
     Texture playerTexture = Texture("flAOQJ7reKc.jpg");
-    playerShader.use();
-    playerShader.setInt("playerTexture", 0);
+    player = Player(glm::vec3(0.0f, 5.0f, 0.0f), VAOs[1], VBOs[1], playerShader, playerTexture);
+    player.shader.use();
+    player.shader.setInt("playerTexture", 0);
 
     Shader crosshairShader("crosshairVertex.glsl", "crosshairFragment.glsl");
-    Crosshair crosshair(VAOs[2], VBOs[2]);
-
+    Crosshair crosshair(VAOs[2], VBOs[2], crosshairShader);
 
 
     while (!glfwWindowShouldClose(window))
@@ -93,7 +94,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, playerTexture.ID);
+        glBindTexture(GL_TEXTURE_2D, player.texture.ID);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, container.texture.ID);
         
@@ -105,28 +106,29 @@ int main()
             glm::mat4 view = player.camera.getViewMatrix();
             container.shader.setMat4("view", view);
             glBindVertexArray(VAOs[0]);
-            int size = chunk.coordinate.size();
-            for (int i = 0; i < size; i++) 
+            for (int i = 0; i < SIZE; i++) 
             {
-                glm::vec3 coord = chunk.coordinate[i];
-                
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, coord);
-                container.shader.setMat4("model", model);
+                if (chunk.coordinate[i].second != AIR) {
+                    glm::vec3 coord = chunk.coordinate[i].first;
 
-                if (false)
-                    container.shader.setFloat("chosen", 0.2f);
-                else
-                    container.shader.setFloat("chosen", 1.0f);
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, coord);
+                    container.shader.setMat4("model", model);
 
-                glDrawArrays(GL_TRIANGLES, 0, 36);
+                    if (false)
+                        container.shader.setFloat("chosen", 0.2f);
+                    else
+                        container.shader.setFloat("chosen", 1.0f);
+
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                }
             }
 
         }
 
         //crosshair draw
         {
-            crosshairShader.use();
+            crosshair.shader.use();
             glBindVertexArray(VAOs[2]);
             glDrawArrays(GL_TRIANGLES, 0, 12);
         }
@@ -146,12 +148,10 @@ int main()
         }*/
  
         //debug
-        std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
+        //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
         
         processInput(window);
         player.updateCamera();
-        
-        //std::cout << "-------------------------------" << std::endl;
         
         glfwSwapBuffers(window);
         glfwPollEvents();

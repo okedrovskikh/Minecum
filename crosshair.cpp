@@ -1,7 +1,9 @@
 #include "crosshair.h"
 
-Crosshair::Crosshair(unsigned int& VAO, unsigned int& VBO)
+Crosshair::Crosshair(unsigned int& VAO, unsigned int& VBO, Shader& shader)
 {
+    this->shader = shader;
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 

@@ -2,7 +2,7 @@
 #include "shader.h"
 #include "camera.h"
 #include "texture.h"
-#include <vector>
+#include "chunk.h"
 #include <limits>
 
 const float WIDTH_X = 0.6f;
@@ -20,11 +20,13 @@ class Player
 public:
     glm::vec3 position;
 	Camera camera;
+    Shader shader;
+    Texture texture;
 	Player();
-    Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO);
-    void processMovement(GLFWwindow* window, float deltaTime, const std::vector<glm::vec3>& v);
-    void processLeftClick(std::vector<glm::vec3>& v);
-    void processRightClick(std::vector<glm::vec3>& v);
+    Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, Shader& shader, Texture& texture);
+    void processMovement(GLFWwindow* window, float deltaTime, const Chunk& chunk);
+    void processLeftClick(Chunk& chunk);
+    void processRightClick(Chunk& chunk);
     void updateCamera();
     ~Player();
 private:
@@ -73,7 +75,7 @@ private:
         -0.3f,  0.3f,  0.3f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         -0.3f,  0.3f, -0.3f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f
     };
-    void applyMotion(glm::vec3 motion, const std::vector<glm::vec3>& v);
+    void applyMotion(glm::vec3 motion, const Chunk& chunk);
     bool AABB_(float one, float two, float par = 0.3f);
 };
 

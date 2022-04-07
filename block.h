@@ -2,8 +2,10 @@
 #include "texture.h"
 #include "shader.h"
 
-#include <glad/glad.h>
-#include <vector>
+enum BlockType 
+{
+    SOLID, AIR
+};
 
 class BlockPrototype
 {
@@ -60,10 +62,11 @@ private:
 class Block
 {
 public:
-	BlockPrototype geometry;
+    unsigned int ID;
 	Shader shader;
 	Texture texture;
 	Block(unsigned int& VAO, unsigned int& VBO, const Shader& shader, const Texture& texture);
 	~Block();
 private:
+	BlockPrototype geometry;
 };

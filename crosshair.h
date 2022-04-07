@@ -1,13 +1,12 @@
 #pragma once
 #include "shader.h"
-#include "shader.h"
-#include "texture.h"
 
 
 class Crosshair
 {
 public:
-	Crosshair(unsigned int& VAO, unsigned int& VBO);
+    Shader shader;
+	Crosshair(unsigned int& VAO, unsigned int& VBO, Shader& shader);
 	~Crosshair();
 private:
     float vertices[288] = {

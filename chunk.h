@@ -4,14 +4,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <fstream>
-#include <vector>
+#include <map>
+#include "block.h"
 
 const unsigned int SIZE = 6 * 6 * 16;
 
 class Chunk
 {
 public:
-	std::vector<glm::vec3> coordinate;
+	std::pair<glm::vec3, BlockType>* coordinate;
 	Chunk(glm::vec3 position);
 	~Chunk();
 private:

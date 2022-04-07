@@ -18,6 +18,7 @@ void Camera::update(glm::vec3 position) {
     Position = position;
     updateCameraVectors();
 }
+
 void Camera::ProcessMouseMovement(float xoffset, float yoffset)
 {
     xoffset *= MouseSensitivity;
