@@ -11,7 +11,8 @@ Player::Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, const S
 	this->shader = shader;
 	this->texture = texture;
 
-	state = MIDAIR;
+	this->yVelocity = 0.0f;
+	this->state = MIDAIR;
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -161,6 +162,7 @@ void Player::processRightClick(Chunk& chunk)
 							shortestDistance = distance;
 							result = chunk.coordinate[i].first + delta[j];
 							done = true;
+							break;
 						}
 					}
 				}
@@ -171,8 +173,16 @@ void Player::processRightClick(Chunk& chunk)
 	}
 
 	if (done) {
-		chunk.coordinate[chunk.getIndex(result)].second.first = CONTAINER;
-		chunk.coordinate[chunk.getIndex(result)].second.second = true;
+		int index = chunk.getIndex(result);
+
+		bool collisionX = AABB_(result.x - 0.5f, position.x, WIDTH_X / 2) || AABB_(result.x + 0.5f, position.x, WIDTH_X / 2) || AABB_(position.x, result.x, 0.5f);
+		bool collisionY = AABB_(result.y - 0.5f, position.y, HEIGHT_Y / 2) || AABB_(result.y + 0.5f, position.y, HEIGHT_Y / 2) || AABB_(position.y, result.y, 0.5f);
+		bool collisionZ = AABB_(result.z - 0.5f, position.z, WIDTH_Z / 2) || AABB_(result.z + 0.5f, position.z, WIDTH_Z / 2) || AABB_(position.z, result.z, 0.5f);
+
+		if (!(collisionX && collisionY && collisionZ)) {
+			chunk.coordinate[index].second.first = CONTAINER;
+			chunk.coordinate[index].second.second = true;
+		}
 	}
 }
 
@@ -219,9 +229,9 @@ void Player::applyMotion(glm::vec3 motion, const Chunk& chunk)
 				bool collisionZ = AABB_(top.z, coord.z, 0.5f) || AABB_(bottom.z, coord.z, 0.5f) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
 
 				if (collisionX && collisionY && collisionZ) {
-					if (coord.y + 0.5f <= position.y + motion.y) 
+					if (coord.y + 0.5f <= position.y + motion.y && state != FLYING) 
 						state = STANDING;
-					else if (position.y + motion.y <= coord.y - 0.5f) 
+					else if (position.y + motion.y <= coord.y - 0.5f && state != FLYING) 
 						state = MIDAIR;
 
 					motion.y = 0.0f;
@@ -243,9 +253,8 @@ void Player::applyMotion(glm::vec3 motion, const Chunk& chunk)
 		}
 	}
 
-	if (!overallCollision && state != FLYING) {
+	if (!overallCollision && state != FLYING)
 		state = MIDAIR;
-	}
 
 	position += motion;
 }
