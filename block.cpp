@@ -30,6 +30,11 @@ BlockPrototype::~BlockPrototype()
 
 }
 
+Block::Block()
+{
+
+}
+
 Block::Block(unsigned int& VAO, unsigned int& VBO, const Shader& shader, const Texture& texture) : geometry(VAO, VBO)
 {
 	this->shader = shader;

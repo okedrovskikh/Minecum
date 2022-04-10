@@ -12,8 +12,10 @@ const unsigned int SIZE = 6 * 6 * 16;
 class Chunk
 {
 public:
-	std::pair<glm::vec3, BlockType>* coordinate;
+	std::pair<glm::vec3, std::pair<BlockType, bool>>* coordinate;
+	Chunk();
 	Chunk(glm::vec3 position);
+	int getIndex(glm::vec3 position);
 	~Chunk();
 private:
 };

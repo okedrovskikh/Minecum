@@ -108,15 +108,15 @@ int main()
             glBindVertexArray(VAOs[0]);
             for (int i = 0; i < SIZE; i++) 
             {
-                if (chunk.coordinate[i].second != AIR) {
+                if (chunk.coordinate[i].second.first != AIR) {
                     glm::vec3 coord = chunk.coordinate[i].first;
 
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, coord);
                     container.shader.setMat4("model", model);
 
-                    if (false)
-                        container.shader.setFloat("chosen", 0.2f);
+                    if (chunk.coordinate[i].second.second == true)
+                        container.shader.setFloat("chosen", 0.6f);
                     else
                         container.shader.setFloat("chosen", 1.0f);
 
@@ -152,6 +152,7 @@ int main()
         
         processInput(window);
         player.updateCamera();
+        player.rayCast(chunk);
         
         glfwSwapBuffers(window);
         glfwPollEvents();

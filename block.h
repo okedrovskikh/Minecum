@@ -4,7 +4,7 @@
 
 enum BlockType 
 {
-    SOLID, AIR
+    CONTAINER, AIR
 };
 
 class BlockPrototype
@@ -62,11 +62,11 @@ private:
 class Block
 {
 public:
-    unsigned int ID;
 	Shader shader;
 	Texture texture;
+    Block();
 	Block(unsigned int& VAO, unsigned int& VBO, const Shader& shader, const Texture& texture);
-	~Block();
+    ~Block();
 private:
 	BlockPrototype geometry;
 };

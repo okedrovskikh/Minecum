@@ -4,12 +4,13 @@
 #include "texture.h"
 #include "chunk.h"
 #include <limits>
+#include <vector>
 
 const float WIDTH_X = 0.6f;
 const float HEIGHT_Y = 0.6f;
 const float WIDTH_Z = 0.6f;
 
-const float INTERACTION_RADIUS = 2.0f;
+const float INTERACTION_RADIUS = 3.0f;
 
 enum State {
     STANDING, MIDAIR, SWIMING, FLYING
@@ -23,8 +24,9 @@ public:
     Shader shader;
     Texture texture;
 	Player();
-    Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, Shader& shader, Texture& texture);
+    Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, const Shader& shader, const Texture& texture);
     void processMovement(GLFWwindow* window, float deltaTime, const Chunk& chunk);
+    void rayCast(Chunk& chunk);
     void processLeftClick(Chunk& chunk);
     void processRightClick(Chunk& chunk);
     void updateCamera();
