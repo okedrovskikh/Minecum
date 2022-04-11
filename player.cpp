@@ -79,6 +79,7 @@ void Player::processMovement(GLFWwindow* window, float deltaTime, const Chunk& c
 void Player::rayCast(Chunk& chunk)
 {
 	float shortestDistance = std::numeric_limits<float>::max();
+	interactionBlockIndex = -1;
 
 	for (int i = 0; i < SIZE; i++)
 	{
@@ -136,8 +137,6 @@ void Player::rayCast(Chunk& chunk)
 
 	if (interactionBlockIndex >= 0)
 		chunk.coordinate[interactionBlockIndex].second.second = true;
-	else
-		interactionBlockIndex = -1;
 }
 
 void Player::processLeftClick(Chunk& chunk)
