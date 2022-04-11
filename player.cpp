@@ -84,17 +84,18 @@ void Player::rayCast(Chunk& chunk)
 	for (int i = 0; i < SIZE; i++)
 	{
 		if (chunk.coordinate[i].second.first == CONTAINER) {
-
 			chunk.coordinate[i].second.second = false;
 			
+			glm::vec3 coord = chunk.coordinate[i].first;
 			glm::vec3 solution = camera.Position;
+
 			for (int t = 0; t < INTERACTION_RADIUS * 100; t++)
 			{
 				solution.x += camera.Front.x * 0.01f;
-				bool collisionX = AABB_(solution.x, chunk.coordinate[i].first.x, 0.5f);
+				bool collisionX = AABB_(solution.x, coord.x, 0.5f);
 				{
-					bool collisionY = AABB_(solution.y, chunk.coordinate[i].first.y, 0.5f);
-					bool collisionZ = AABB_(solution.z, chunk.coordinate[i].first.z, 0.5f);
+					bool collisionY = AABB_(solution.y, coord.y, 0.5f);
+					bool collisionZ = AABB_(solution.z, coord.z, 0.5f);
 
 					if (collisionX && collisionY && collisionZ) {
 						float distance = glm::distance(camera.Position, solution);
@@ -106,9 +107,9 @@ void Player::rayCast(Chunk& chunk)
 					}
 				}
 				solution.y += camera.Front.y * 0.01f;
-				bool collisionY = AABB_(solution.y, chunk.coordinate[i].first.y, 0.5f);
+				bool collisionY = AABB_(solution.y, coord.y, 0.5f);
 				{
-					bool collisionZ = AABB_(solution.z, chunk.coordinate[i].first.z, 0.5f);
+					bool collisionZ = AABB_(solution.z, coord.z, 0.5f);
 
 					if (collisionX && collisionY && collisionZ) {
 						float distance = glm::distance(camera.Position, solution);
@@ -120,7 +121,7 @@ void Player::rayCast(Chunk& chunk)
 					}
 				}
 				solution.z += camera.Front.z * 0.01f;
-				bool collisionZ = AABB_(solution.z, chunk.coordinate[i].first.z, 0.5f);
+				bool collisionZ = AABB_(solution.z, coord.z, 0.5f);
 				{
 					if (collisionX && collisionY && collisionZ) {
 						float distance = glm::distance(camera.Position, solution);
@@ -135,13 +136,14 @@ void Player::rayCast(Chunk& chunk)
 		}
 	}
 
-	if (interactionBlockIndex >= 0)
+	if (interactionBlockIndex != -1)
 		chunk.coordinate[interactionBlockIndex].second.second = true;
 }
 
 void Player::processLeftClick(Chunk& chunk)
 {
-	chunk.coordinate[interactionBlockIndex].second.first = AIR;
+	if (interactionBlockIndex != -1)
+		chunk.coordinate[interactionBlockIndex].second.first = AIR;
 }
 
 void Player::processRightClick(Chunk& chunk)
@@ -161,22 +163,54 @@ void Player::processRightClick(Chunk& chunk)
 
 		for (int j = 0; j < 3; j++)
 		{
+			glm::vec3 newCoord = chunk.coordinate[interactionBlockIndex].first + delta[j];
+			glm::vec3 solution = camera.Position;
+
 			for (int t = 0; t < INTERACTION_RADIUS * 100; t++)
 			{
-				float delta_t = t * 0.01f;
-				glm::vec3 solution = glm::vec3(camera.Position.x + camera.Front.x * delta_t, camera.Position.y + camera.Front.y * delta_t, camera.Position.z + camera.Front.z * delta_t);
+				solution.x += camera.Front.x * 0.01f;
+				bool collisionX = AABB_(solution.x, newCoord.x, 0.5f);
+				{
+					bool collisionY = AABB_(solution.y, newCoord.y, 0.5f);
+					bool collisionZ = AABB_(solution.z, newCoord.z, 0.5f);
 
-				bool collisionX = AABB_(solution.x, chunk.coordinate[interactionBlockIndex].first.x + delta[j].x, 0.5f);
-				bool collisionY = AABB_(solution.y, chunk.coordinate[interactionBlockIndex].first.y + delta[j].y, 0.5f);
-				bool collisionZ = AABB_(solution.z, chunk.coordinate[interactionBlockIndex].first.z + delta[j].z, 0.5f);
+					if (collisionX && collisionY && collisionZ) {
+						float distance = glm::distance(camera.Position, newCoord);
+						if (distance < shortestDistance) {
+							shortestDistance = distance;
+							newBlock = newCoord;
+							done = true;
+							break;
+						}
+					}
+				}
+				solution.y += camera.Front.y * 0.01f;
+				bool collisionY = AABB_(solution.y, newCoord.y, 0.5f);
+				{
+					bool collisionZ = AABB_(solution.z, newCoord.z, 0.5f);
 
-				if (collisionX && collisionY && collisionZ) {
-					float distance = glm::distance(camera.Position, chunk.coordinate[interactionBlockIndex].first + delta[j]);
-					if (distance < shortestDistance) {
-						shortestDistance = distance;
-						newBlock = chunk.coordinate[interactionBlockIndex].first + delta[j];
-						done = true;
-						break;
+					if (collisionX && collisionY && collisionZ) {
+						float distance = glm::distance(camera.Position, newCoord);
+						if (distance < shortestDistance) {
+							shortestDistance = distance;
+							newBlock = newCoord;
+							done = true;
+							break;
+						}
+					}
+				}
+				solution.z += camera.Front.z * 0.01f;
+				bool collisionZ = AABB_(solution.z, newCoord.z, 0.5f);
+				{
+
+					if (collisionX && collisionY && collisionZ) {
+						float distance = glm::distance(camera.Position, newCoord);
+						if (distance < shortestDistance) {
+							shortestDistance = distance;
+							newBlock = newCoord;
+							done = true;
+							break;
+						}
 					}
 				}
 			}
@@ -186,14 +220,15 @@ void Player::processRightClick(Chunk& chunk)
 	if (done) {
 		chunk.coordinate[interactionBlockIndex].second.second = false;
 		int index = chunk.getIndex(newBlock);
+		if (index != -1) {
+			bool collisionX = AABB_(newBlock.x - 0.5f, position.x, WIDTH_X / 2) || AABB_(newBlock.x + 0.5f, position.x, WIDTH_X / 2) || AABB_(position.x, newBlock.x, 0.5f);
+			bool collisionY = AABB_(newBlock.y - 0.5f, position.y, HEIGHT_Y / 2) || AABB_(newBlock.y + 0.5f, position.y, HEIGHT_Y / 2) || AABB_(position.y, newBlock.y, 0.5f);
+			bool collisionZ = AABB_(newBlock.z - 0.5f, position.z, WIDTH_Z / 2) || AABB_(newBlock.z + 0.5f, position.z, WIDTH_Z / 2) || AABB_(position.z, newBlock.z, 0.5f);
 
-		bool collisionX = AABB_(newBlock.x - 0.5f, position.x, WIDTH_X / 2) || AABB_(newBlock.x + 0.5f, position.x, WIDTH_X / 2) || AABB_(position.x, newBlock.x, 0.5f);
-		bool collisionY = AABB_(newBlock.y - 0.5f, position.y, HEIGHT_Y / 2) || AABB_(newBlock.y + 0.5f, position.y, HEIGHT_Y / 2) || AABB_(position.y, newBlock.y, 0.5f);
-		bool collisionZ = AABB_(newBlock.z - 0.5f, position.z, WIDTH_Z / 2) || AABB_(newBlock.z + 0.5f, position.z, WIDTH_Z / 2) || AABB_(position.z, newBlock.z, 0.5f);
-
-		if (!(collisionX && collisionY && collisionZ)) {
-			chunk.coordinate[index].second.first = CONTAINER;
-			chunk.coordinate[index].second.second = true;
+			if (!(collisionX && collisionY && collisionZ)) {
+				chunk.coordinate[index].second.first = CONTAINER;
+				chunk.coordinate[index].second.second = true;
+			}
 		}
 	}
 }
