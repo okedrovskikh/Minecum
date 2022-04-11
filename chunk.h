@@ -7,7 +7,7 @@
 #include <map>
 #include "block.h"
 
-const unsigned int SIZE = 6 * 6 * 16;
+const unsigned int SIZE = 6 * 6 * 32;
 
 class Chunk
 {

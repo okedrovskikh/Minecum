@@ -1,6 +1,6 @@
 #include "crosshair.h"
 
-Crosshair::Crosshair(unsigned int& VAO, unsigned int& VBO, Shader& shader)
+Crosshair::Crosshair(unsigned int& VAO, unsigned int& VBO, const Shader& shader)
 {
     this->shader = shader;
 

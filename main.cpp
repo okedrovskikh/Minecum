@@ -71,16 +71,17 @@ int main()
     Texture containerTexture("container.jpg");
     Block container(VAOs[0], VBOs[0], containerShader, containerTexture);
     container.shader.use();
-    container.shader.setInt("texture1", 1);
+    container.shader.setInt("texture1", 0);
 
     Shader playerShader("playerVertex.glsl", "playerFragment.glsl");
-    Texture playerTexture = Texture("flAOQJ7reKc.jpg");
+    Texture playerTexture("flAOQJ7reKc.jpg");
     player = Player(glm::vec3(0.0f, 5.0f, 0.0f), VAOs[1], VBOs[1], playerShader, playerTexture);
     player.shader.use();
-    player.shader.setInt("playerTexture", 0);
+    player.shader.setInt("playerTexture", 1);
 
     Shader crosshairShader("crosshairVertex.glsl", "crosshairFragment.glsl");
     Crosshair crosshair(VAOs[2], VBOs[2], crosshairShader);
+    crosshair.shader.use();
 
 
     while (!glfwWindowShouldClose(window))
@@ -94,9 +95,9 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, player.texture.ID);
-        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, container.texture.ID);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, player.texture.ID);
         
         //chunk draw
         {
@@ -123,8 +124,22 @@ int main()
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                 }
             }
-
         }
+
+        //player draw
+        //lol, player are not drawing correctly
+        /*{
+            player.shader.use();
+            glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+            player.shader.setMat4("projection", projection);
+            glm::mat4 view = player.camera.getViewMatrix();
+            player.shader.setMat4("view", view);
+            glm::mat4 model = glm::mat4(1.0f);
+            glBindVertexArray(VAOs[1]);
+            model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
+            player.shader.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }*/
 
         //crosshair draw
         {
@@ -132,20 +147,6 @@ int main()
             glBindVertexArray(VAOs[2]);
             glDrawArrays(GL_TRIANGLES, 0, 12);
         }
-
-        //player draw
-        /*{
-            playerShader.use();
-            glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-            playerShader.setMat4("projection", projection);
-            glm::mat4 view = player.camera.GetViewMatrix();
-            playerShader.setMat4("view", view);
-            glBindVertexArray(VAOs[1]);
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, player.position);
-            playerShader.setMat4("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }*/
  
         //debug
         //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
@@ -158,8 +159,8 @@ int main()
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(2, VAOs);
-    glDeleteBuffers(2, VBOs);
+    glDeleteVertexArrays(3, VAOs);
+    glDeleteBuffers(3, VBOs);
 
     glfwTerminate();
 

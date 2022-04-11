@@ -19,7 +19,7 @@ Chunk::Chunk(glm::vec3 position)
 		if (countZ % 6 == 0 && countX % 6 == 0)
 			countY++;
 		
-		if (countY <= 14)
+		if (countY < 16)
 			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {CONTAINER, false} };
 		else 
 			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {AIR, false} };

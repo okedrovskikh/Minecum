@@ -39,7 +39,7 @@ void Player::processMovement(GLFWwindow* window, float deltaTime, const Chunk& c
 	if (state == STANDING) {
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			state = MIDAIR;
-			yVelocity = 0.12f;
+			yVelocity = 10.0f * deltaTime;
 		}
 	}
 	else if (state == FLYING) {
@@ -63,7 +63,7 @@ void Player::processMovement(GLFWwindow* window, float deltaTime, const Chunk& c
 	switch (state)
 	{
 	case MIDAIR:
-		yVelocity -= 0.8f * deltaTime;
+		yVelocity -= 0.25f * deltaTime;
 		break;
 	case SWIMING:
 		break;
@@ -81,37 +81,64 @@ void Player::rayCast(Chunk& chunk)
 	int result = NULL;
 	bool done = false;
 
-	//when you choose block in corner between two block(or close enough place) it choose block between
-	//if t < INTERACTION_RADIUS * 10000, and delta move 0.0001, but it's too long
 	for (int i = 0; i < SIZE; i++)
 	{
 		if (chunk.coordinate[i].second.first == CONTAINER) {
 
 			chunk.coordinate[i].second.second = false;
-
-			for (int t = 0; t < INTERACTION_RADIUS * 10; t++)
+			
+			glm::vec3 solution = camera.Position;
+			for (int t = 0; t < INTERACTION_RADIUS * 100; t++)
 			{
-				float delta_t = t * 0.1f;
-				glm::vec3 solution = glm::vec3(camera.Position.x + camera.Front.x * delta_t, camera.Position.y + camera.Front.y * delta_t, camera.Position.z + camera.Front.z * delta_t);
-
+				solution.x += camera.Front.x * 0.01f;
 				bool collisionX = AABB_(solution.x, chunk.coordinate[i].first.x, 0.5f);
-				bool collisionY = AABB_(solution.y, chunk.coordinate[i].first.y, 0.5f);
-				bool collisionZ = AABB_(solution.z, chunk.coordinate[i].first.z, 0.5f);
+				{
+					bool collisionY = AABB_(solution.y, chunk.coordinate[i].first.y, 0.5f);
+					bool collisionZ = AABB_(solution.z, chunk.coordinate[i].first.z, 0.5f);
 
-				if (collisionX && collisionY && collisionZ) {
-					float distance = glm::distance(camera.Position, chunk.coordinate[i].first);
-					if (distance < shortestDistance) {
-						shortestDistance = distance;
-						result = i;
-						done = true;
-						break;
+					if (collisionX && collisionY && collisionZ) {
+						float distance = glm::distance(camera.Position, solution);
+						if (distance < shortestDistance) {
+							shortestDistance = distance;
+							result = i;
+							done = true;
+							break;
+						}
+					}
+				}
+				solution.y += camera.Front.y * 0.01f;
+				bool collisionY = AABB_(solution.y, chunk.coordinate[i].first.y, 0.5f);
+				{
+					bool collisionZ = AABB_(solution.z, chunk.coordinate[i].first.z, 0.5f);
+
+					if (collisionX && collisionY && collisionZ) {
+						float distance = glm::distance(camera.Position, solution);
+						if (distance < shortestDistance) {
+							shortestDistance = distance;
+							result = i;
+							done = true;
+							break;
+						}
+					}
+				}
+				solution.z += camera.Front.z * 0.01f;
+				bool collisionZ = AABB_(solution.z, chunk.coordinate[i].first.z, 0.5f);
+				{
+					if (collisionX && collisionY && collisionZ) {
+						float distance = glm::distance(camera.Position, solution);
+						if (distance < shortestDistance) {
+							shortestDistance = distance;
+							result = i;
+							done = true;
+							break;
+						}
 					}
 				}
 			}
 		}
 	}
 
-	if (done)
+	if (done) 
 		chunk.coordinate[result].second.second = true;
 }
 
