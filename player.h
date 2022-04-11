@@ -35,6 +35,7 @@ public:
 private:
     float yVelocity;
     State state;
+    int interactionBlockIndex;
     float vertices[288] = {
         -0.3f, -0.3f, -0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
          0.3f, -0.3f, -0.3f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,

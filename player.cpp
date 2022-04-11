@@ -13,6 +13,7 @@ Player::Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, const S
 
 	this->yVelocity = 0.0f;
 	this->state = MIDAIR;
+	this->interactionBlockIndex = -1;
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -39,7 +40,7 @@ void Player::processMovement(GLFWwindow* window, float deltaTime, const Chunk& c
 	if (state == STANDING) {
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			state = MIDAIR;
-			yVelocity = 10.0f * deltaTime;
+			yVelocity = 8.0f * deltaTime;
 		}
 	}
 	else if (state == FLYING) {
@@ -63,7 +64,7 @@ void Player::processMovement(GLFWwindow* window, float deltaTime, const Chunk& c
 	switch (state)
 	{
 	case MIDAIR:
-		yVelocity -= 0.25f * deltaTime;
+		yVelocity -= 0.2f * deltaTime;
 		break;
 	case SWIMING:
 		break;
@@ -78,8 +79,6 @@ void Player::processMovement(GLFWwindow* window, float deltaTime, const Chunk& c
 void Player::rayCast(Chunk& chunk)
 {
 	float shortestDistance = std::numeric_limits<float>::max();
-	int result = NULL;
-	bool done = false;
 
 	for (int i = 0; i < SIZE; i++)
 	{
@@ -100,8 +99,7 @@ void Player::rayCast(Chunk& chunk)
 						float distance = glm::distance(camera.Position, solution);
 						if (distance < shortestDistance) {
 							shortestDistance = distance;
-							result = i;
-							done = true;
+							interactionBlockIndex = i;
 							break;
 						}
 					}
@@ -115,8 +113,7 @@ void Player::rayCast(Chunk& chunk)
 						float distance = glm::distance(camera.Position, solution);
 						if (distance < shortestDistance) {
 							shortestDistance = distance;
-							result = i;
-							done = true;
+							interactionBlockIndex = i;
 							break;
 						}
 					}
@@ -128,8 +125,7 @@ void Player::rayCast(Chunk& chunk)
 						float distance = glm::distance(camera.Position, solution);
 						if (distance < shortestDistance) {
 							shortestDistance = distance;
-							result = i;
-							done = true;
+							interactionBlockIndex = i;
 							break;
 						}
 					}
@@ -138,21 +134,15 @@ void Player::rayCast(Chunk& chunk)
 		}
 	}
 
-	if (done) 
-		chunk.coordinate[result].second.second = true;
+	if (interactionBlockIndex >= 0)
+		chunk.coordinate[interactionBlockIndex].second.second = true;
+	else
+		interactionBlockIndex = -1;
 }
 
 void Player::processLeftClick(Chunk& chunk)
 {
-	updateCamera();
-
-	for (int i = 0; i < SIZE; i++)
-	{
-		if (chunk.coordinate[i].second.first == CONTAINER && chunk.coordinate[i].second.second == true) {
-			chunk.coordinate[i].second.first = AIR;
-			break;
-		}
-	}
+	chunk.coordinate[interactionBlockIndex].second.first = AIR;
 }
 
 void Player::processRightClick(Chunk& chunk)
@@ -160,51 +150,77 @@ void Player::processRightClick(Chunk& chunk)
 	updateCamera();
 
 	float shortestDistance = std::numeric_limits<float>::max();
-	glm::vec3 result;
+	glm::vec3 newBlock;
 	bool done = false;
 
-	for (int i = 0; i < SIZE; i++)
-	{
-		if (chunk.coordinate[i].second.first == CONTAINER && chunk.coordinate[i].second.second == true) {
-			glm::vec3 delta[3] = {
-				glm::vec3(sgn(camera.Position.x - chunk.coordinate[i].first.x), 0.0f, 0.0f),
-				glm::vec3(0.0f, sgn(camera.Position.y - chunk.coordinate[i].first.y), 0.0f),
-				glm::vec3(0.0f, 0.0f, sgn(camera.Position.z - chunk.coordinate[i].first.z))
-			};
+	if (chunk.coordinate[interactionBlockIndex].second.first == CONTAINER && chunk.coordinate[interactionBlockIndex].second.second == true) {
+		glm::vec3 delta[3] = {
+			glm::vec3(sgn(camera.Position.x - chunk.coordinate[interactionBlockIndex].first.x), 0.0f, 0.0f),
+			glm::vec3(0.0f, sgn(camera.Position.y - chunk.coordinate[interactionBlockIndex].first.y), 0.0f),
+			glm::vec3(0.0f, 0.0f, sgn(camera.Position.z - chunk.coordinate[interactionBlockIndex].first.z))
+		};
 
-			for (int j = 0; j < 3; j++)
+		for (int j = 0; j < 3; j++)
+		{
+			glm::vec3 solution = camera.Position;
+			for (int t = 0; t < INTERACTION_RADIUS * 100; t++)
 			{
-				for (int t = 0; t < INTERACTION_RADIUS * 10; t++)
+				solution.x += camera.Front.x * 0.01f;
+			    bool collisionX = AABB_(solution.x, chunk.coordinate[interactionBlockIndex].first.x + delta[j].x, 0.5f);
 				{
-					float delta_t = t * 0.1f;
-					glm::vec3 solution = glm::vec3(camera.Position.x + camera.Front.x * delta_t, camera.Position.y + camera.Front.y * delta_t, camera.Position.z + camera.Front.z * delta_t);
-
-					bool collisionX = AABB_(solution.x, chunk.coordinate[i].first.x + delta[j].x, 0.5f);
-					bool collisionY = AABB_(solution.y, chunk.coordinate[i].first.y + delta[j].y, 0.5f);
-					bool collisionZ = AABB_(solution.z, chunk.coordinate[i].first.z + delta[j].z, 0.5f);
+					bool collisionY = AABB_(solution.y, chunk.coordinate[interactionBlockIndex].first.y + delta[j].y, 0.5f);
+					bool collisionZ = AABB_(solution.z, chunk.coordinate[interactionBlockIndex].first.z + delta[j].z, 0.5f);
 
 					if (collisionX && collisionY && collisionZ) {
-						float distance = glm::distance(camera.Position, chunk.coordinate[i].first + delta[j]);
+						float distance = glm::distance(camera.Position, chunk.coordinate[interactionBlockIndex].first + delta[j]);
 						if (distance < shortestDistance) {
 							shortestDistance = distance;
-							result = chunk.coordinate[i].first + delta[j];
+							newBlock = chunk.coordinate[interactionBlockIndex].first + delta[j];
+							done = true;
+							break;
+						}
+					}
+				}
+				solution.y += camera.Front.y * 0.01f;
+				bool collisionY = AABB_(solution.y, chunk.coordinate[interactionBlockIndex].first.y + delta[j].y, 0.5f);
+				{
+					bool collisionZ = AABB_(solution.z, chunk.coordinate[interactionBlockIndex].first.z + delta[j].z, 0.5f);
+
+					if (collisionX && collisionY && collisionZ) {
+						float distance = glm::distance(camera.Position, chunk.coordinate[interactionBlockIndex].first + delta[j]);
+						if (distance < shortestDistance) {
+							shortestDistance = distance;
+							newBlock = chunk.coordinate[interactionBlockIndex].first + delta[j];
+							done = true;
+							break;
+						}
+					}
+				}
+				solution.z += camera.Front.z * 0.01f;
+				{
+					bool collisionZ = AABB_(solution.z, chunk.coordinate[interactionBlockIndex].first.z + delta[j].z, 0.5f);
+
+					if (collisionX && collisionY && collisionZ) {
+						float distance = glm::distance(camera.Position, chunk.coordinate[interactionBlockIndex].first + delta[j]);
+						if (distance < shortestDistance) {
+							shortestDistance = distance;
+							newBlock = chunk.coordinate[interactionBlockIndex].first + delta[j];
 							done = true;
 							break;
 						}
 					}
 				}
 			}
-			chunk.coordinate[i].second.second = false;
-			break;
 		}
 	}
 
 	if (done) {
-		int index = chunk.getIndex(result);
+		chunk.coordinate[interactionBlockIndex].second.second = false;
+		int index = chunk.getIndex(newBlock);
 
-		bool collisionX = AABB_(result.x - 0.5f, position.x, WIDTH_X / 2) || AABB_(result.x + 0.5f, position.x, WIDTH_X / 2) || AABB_(position.x, result.x, 0.5f);
-		bool collisionY = AABB_(result.y - 0.5f, position.y, HEIGHT_Y / 2) || AABB_(result.y + 0.5f, position.y, HEIGHT_Y / 2) || AABB_(position.y, result.y, 0.5f);
-		bool collisionZ = AABB_(result.z - 0.5f, position.z, WIDTH_Z / 2) || AABB_(result.z + 0.5f, position.z, WIDTH_Z / 2) || AABB_(position.z, result.z, 0.5f);
+		bool collisionX = AABB_(newBlock.x - 0.5f, position.x, WIDTH_X / 2) || AABB_(newBlock.x + 0.5f, position.x, WIDTH_X / 2) || AABB_(position.x, newBlock.x, 0.5f);
+		bool collisionY = AABB_(newBlock.y - 0.5f, position.y, HEIGHT_Y / 2) || AABB_(newBlock.y + 0.5f, position.y, HEIGHT_Y / 2) || AABB_(position.y, newBlock.y, 0.5f);
+		bool collisionZ = AABB_(newBlock.z - 0.5f, position.z, WIDTH_Z / 2) || AABB_(newBlock.z + 0.5f, position.z, WIDTH_Z / 2) || AABB_(position.z, newBlock.z, 0.5f);
 
 		if (!(collisionX && collisionY && collisionZ)) {
 			chunk.coordinate[index].second.first = CONTAINER;
