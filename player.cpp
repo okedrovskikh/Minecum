@@ -5,7 +5,7 @@ Player::Player()
 
 }
 
-Player::Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, const Shader& shader, const Texture& texture) : camera(glm::vec3(position.x, position.y + HEIGHT_Y / 2 - 0.13f, position.z))
+Player::Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, const Shader& shader, const Texture& texture) : camera(glm::vec3(position.x, position.y + PLAYER_SIZE_Y / 2 - 0.13f, position.z))
 {
 	this->position = position;
 	this->shader = shader;
@@ -40,16 +40,14 @@ void Player::processMovement(GLFWwindow* window, float deltaTime, const Chunk& c
 	if (state == STANDING) {
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			state = MIDAIR;
-			yVelocity = 8.0f * deltaTime;
+			yVelocity = 0.12f;
 		}
 	}
 	else if (state == FLYING) {
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 			motion += glm::vec3(0.0f, 1.0f, 0.0f) * deltaTime;
-		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 			motion -= glm::vec3(0.0f, 1.0f, 0.0f) * deltaTime;
-		}
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -81,55 +79,61 @@ void Player::rayCast(Chunk& chunk)
 	float shortestDistance = std::numeric_limits<float>::max();
 	interactionBlockIndex = -1;
 
-	for (int i = 0; i < SIZE; i++)
+	for (int i = 0; i < CHUNK_SIZE; i++)
 	{
 		if (chunk.coordinate[i].second.first == CONTAINER) {
 			chunk.coordinate[i].second.second = false;
-			
+
 			glm::vec3 coord = chunk.coordinate[i].first;
 			glm::vec3 solution = camera.Position;
 
-			for (int t = 0; t < INTERACTION_RADIUS * 100; t++)
+			bool collisionX = axisCollision(solution.x, coord.x, 0.5f);
+			bool collisionY = axisCollision(solution.y, coord.y, 0.5f);
+			bool collisionZ = axisCollision(solution.z, coord.z, 0.5f);
+
+			std::vector<int> order = getOrder();
+
+			for (int t = 0; t < INTERACTION_RADIUS * 50; t++)
 			{
-				solution.x += camera.Front.x * 0.01f;
-				bool collisionX = AABB_(solution.x, coord.x, 0.5f);
+				for (int j = 0; j < 3; j++)
 				{
-					bool collisionY = AABB_(solution.y, coord.y, 0.5f);
-					bool collisionZ = AABB_(solution.z, coord.z, 0.5f);
-
-					if (collisionX && collisionY && collisionZ) {
-						float distance = glm::distance(camera.Position, solution);
-						if (distance < shortestDistance) {
-							shortestDistance = distance;
-							interactionBlockIndex = i;
-							break;
+					switch (order[j])
+					{
+					case(1):
+						solution.x += camera.Front.x * 0.02f;
+						collisionX = axisCollision(solution.x, coord.x, 0.5f);
+						if (collisionX && collisionY && collisionZ) {
+							float distance = glm::distance(camera.Position, solution);
+							if (distance < shortestDistance) {
+								shortestDistance = distance;
+								interactionBlockIndex = i;
+							}
 						}
-					}
-				}
-				solution.y += camera.Front.y * 0.01f;
-				bool collisionY = AABB_(solution.y, coord.y, 0.5f);
-				{
-					bool collisionZ = AABB_(solution.z, coord.z, 0.5f);
-
-					if (collisionX && collisionY && collisionZ) {
-						float distance = glm::distance(camera.Position, solution);
-						if (distance < shortestDistance) {
-							shortestDistance = distance;
-							interactionBlockIndex = i;
-							break;
+						break;
+					case(2):
+						solution.y += camera.Front.y * 0.02f;
+						collisionY = axisCollision(solution.y, coord.y, 0.5f);
+						if (collisionX && collisionY && collisionZ) {
+							float distance = glm::distance(camera.Position, solution);
+							if (distance < shortestDistance) {
+								shortestDistance = distance;
+								interactionBlockIndex = i;
+							}
 						}
-					}
-				}
-				solution.z += camera.Front.z * 0.01f;
-				bool collisionZ = AABB_(solution.z, coord.z, 0.5f);
-				{
-					if (collisionX && collisionY && collisionZ) {
-						float distance = glm::distance(camera.Position, solution);
-						if (distance < shortestDistance) {
-							shortestDistance = distance;
-							interactionBlockIndex = i;
-							break;
+						break;
+					case(3):
+						solution.z += camera.Front.z * 0.02f;
+						collisionZ = axisCollision(solution.z, coord.z, 0.5f);
+						if (collisionX && collisionY && collisionZ) {
+							float distance = glm::distance(camera.Position, solution);
+							if (distance < shortestDistance) {
+								shortestDistance = distance;
+								interactionBlockIndex = i;
+							}
 						}
+						break;
+					default:
+						break;
 					}
 				}
 			}
@@ -148,8 +152,6 @@ void Player::processLeftClick(Chunk& chunk)
 
 void Player::processRightClick(Chunk& chunk)
 {
-	updateCamera();
-
 	float shortestDistance = std::numeric_limits<float>::max();
 	glm::vec3 newBlock;
 	bool done = false;
@@ -161,56 +163,61 @@ void Player::processRightClick(Chunk& chunk)
 			glm::vec3(0.0f, 0.0f, sgn(camera.Position.z - chunk.coordinate[interactionBlockIndex].first.z))
 		};
 
-		for (int j = 0; j < 3; j++)
+		for (int i = 0; i < 3; i++)
 		{
-			glm::vec3 newCoord = chunk.coordinate[interactionBlockIndex].first + delta[j];
+			glm::vec3 newCoord = chunk.coordinate[interactionBlockIndex].first + delta[i];
 			glm::vec3 solution = camera.Position;
 
-			for (int t = 0; t < INTERACTION_RADIUS * 100; t++)
+			bool collisionX = axisCollision(solution.x, newCoord.x, 0.5f);
+			bool collisionY = axisCollision(solution.y, newCoord.y, 0.5f);
+			bool collisionZ = axisCollision(solution.z, newCoord.z, 0.5f);
+
+			std::vector<int> order = getOrder();
+
+			for (int t = 0; t < INTERACTION_RADIUS * 50; t++)
 			{
-				solution.x += camera.Front.x * 0.01f;
-				bool collisionX = AABB_(solution.x, newCoord.x, 0.5f);
+				for (int j = 0; j < 3; j++)
 				{
-					bool collisionY = AABB_(solution.y, newCoord.y, 0.5f);
-					bool collisionZ = AABB_(solution.z, newCoord.z, 0.5f);
-
-					if (collisionX && collisionY && collisionZ) {
-						float distance = glm::distance(camera.Position, newCoord);
-						if (distance < shortestDistance) {
-							shortestDistance = distance;
-							newBlock = newCoord;
-							done = true;
-							break;
+					switch (order[j])
+					{
+					case(1):
+						solution.x += camera.Front.x * 0.02f;
+						collisionX = axisCollision(solution.x, newCoord.x, 0.5f);
+						if (collisionX && collisionY && collisionZ) {
+							float distance = glm::distance(camera.Position, newCoord);
+							if (distance < shortestDistance) {
+								shortestDistance = distance;
+								newBlock = newCoord;
+								done = true;
+							}
 						}
-					}
-				}
-				solution.y += camera.Front.y * 0.01f;
-				bool collisionY = AABB_(solution.y, newCoord.y, 0.5f);
-				{
-					bool collisionZ = AABB_(solution.z, newCoord.z, 0.5f);
-
-					if (collisionX && collisionY && collisionZ) {
-						float distance = glm::distance(camera.Position, newCoord);
-						if (distance < shortestDistance) {
-							shortestDistance = distance;
-							newBlock = newCoord;
-							done = true;
-							break;
+						break;
+					case(2):
+						solution.y += camera.Front.y * 0.02f;
+						collisionY = axisCollision(solution.y, newCoord.y, 0.5f);
+						if (collisionX && collisionY && collisionZ) {
+							float distance = glm::distance(camera.Position, newCoord);
+							if (distance < shortestDistance) {
+								shortestDistance = distance;
+								newBlock = newCoord;
+								done = true;
+							}
 						}
-					}
-				}
-				solution.z += camera.Front.z * 0.01f;
-				bool collisionZ = AABB_(solution.z, newCoord.z, 0.5f);
-				{
-
-					if (collisionX && collisionY && collisionZ) {
-						float distance = glm::distance(camera.Position, newCoord);
-						if (distance < shortestDistance) {
-							shortestDistance = distance;
-							newBlock = newCoord;
-							done = true;
-							break;
+						break;
+					case(3):
+						solution.z += camera.Front.z * 0.02f;
+						collisionZ = axisCollision(solution.z, newCoord.z, 0.5f);
+						if (collisionX && collisionY && collisionZ) {
+							float distance = glm::distance(camera.Position, newCoord);
+							if (distance < shortestDistance) {
+								shortestDistance = distance;
+								newBlock = newCoord;
+								done = true;
+							}
 						}
+						break;
+					default:
+						break;
 					}
 				}
 			}
@@ -218,14 +225,14 @@ void Player::processRightClick(Chunk& chunk)
 	}
 
 	if (done) {
-		chunk.coordinate[interactionBlockIndex].second.second = false;
 		int index = chunk.getIndex(newBlock);
 		if (index != -1) {
-			bool collisionX = AABB_(newBlock.x - 0.5f, position.x, WIDTH_X / 2) || AABB_(newBlock.x + 0.5f, position.x, WIDTH_X / 2) || AABB_(position.x, newBlock.x, 0.5f);
-			bool collisionY = AABB_(newBlock.y - 0.5f, position.y, HEIGHT_Y / 2) || AABB_(newBlock.y + 0.5f, position.y, HEIGHT_Y / 2) || AABB_(position.y, newBlock.y, 0.5f);
-			bool collisionZ = AABB_(newBlock.z - 0.5f, position.z, WIDTH_Z / 2) || AABB_(newBlock.z + 0.5f, position.z, WIDTH_Z / 2) || AABB_(position.z, newBlock.z, 0.5f);
+			bool collisionX = axisCollision(newBlock.x - 0.5f, position.x, PLAYER_SIZE_X / 2) || axisCollision(newBlock.x + 0.5f, position.x, PLAYER_SIZE_X / 2) || axisCollision(position.x, newBlock.x, 0.5f);
+			bool collisionY = axisCollision(newBlock.y - 0.5f, position.y, PLAYER_SIZE_Y / 2) || axisCollision(newBlock.y + 0.5f, position.y, PLAYER_SIZE_Y / 2) || axisCollision(position.y, newBlock.y, 0.5f);
+			bool collisionZ = axisCollision(newBlock.z - 0.5f, position.z, PLAYER_SIZE_Z / 2) || axisCollision(newBlock.z + 0.5f, position.z, PLAYER_SIZE_Z / 2) || axisCollision(position.z, newBlock.z, 0.5f);
 
 			if (!(collisionX && collisionY && collisionZ)) {
+				chunk.coordinate[interactionBlockIndex].second.second = false;
 				chunk.coordinate[index].second.first = CONTAINER;
 				chunk.coordinate[index].second.second = true;
 			}
@@ -235,10 +242,10 @@ void Player::processRightClick(Chunk& chunk)
 
 void Player::updateCamera()
 {
-	camera.update(glm::vec3(position.x, position.y + HEIGHT_Y / 2 - 0.13f, position.z));
+	camera.update(glm::vec3(position.x, position.y + PLAYER_SIZE_Y / 2 - 0.13f, position.z));
 }
 
-bool Player::AABB_(float one, float two, float parameter)
+bool Player::axisCollision(float one, float two, float parameter)
 {
 	return (one - (two + parameter)) * (one - (two - parameter)) <= 0;
 }
@@ -251,29 +258,29 @@ void Player::applyMotion(glm::vec3 motion, const Chunk& chunk)
 	bool overallCollision = false;
 
 	//a little problem with block's angles, cause when i need to fall for some reason i stand in the air
-	for (int i = 0; i < SIZE; i++)
+	for (int i = 0; i < CHUNK_SIZE; i++)
 	{
 		if (chunk.coordinate[i].second.first == CONTAINER) {
 			glm::vec3 coord = chunk.coordinate[i].first;
 
 			if (motion.x != 0.0f) {
-				glm::vec3 top = glm::vec3(position.x + motion.x + WIDTH_X / 2, position.y + HEIGHT_Y / 2, position.z + WIDTH_Z / 2);
-				glm::vec3 bottom = glm::vec3(position.x + motion.x - WIDTH_X / 2, position.y - HEIGHT_Y / 2, position.z - WIDTH_Z / 2);
+				glm::vec3 top = glm::vec3(position.x + motion.x + PLAYER_SIZE_X / 2, position.y + PLAYER_SIZE_Y / 2, position.z + PLAYER_SIZE_Z / 2);
+				glm::vec3 bottom = glm::vec3(position.x + motion.x - PLAYER_SIZE_X / 2, position.y - PLAYER_SIZE_Y / 2, position.z - PLAYER_SIZE_Z / 2);
 
-				bool collisionX = AABB_(top.x, coord.x, 0.5f) || AABB_(bottom.x, coord.x, 0.5f) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
-				bool collisionY = AABB_(top.y, coord.y, 0.5f) || AABB_(bottom.y, coord.y, 0.5f) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
-				bool collisionZ = AABB_(top.z, coord.z, 0.5f) || AABB_(bottom.z, coord.z, 0.5f) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+				bool collisionX = axisCollision(top.x, coord.x, 0.5f) || axisCollision(bottom.x, coord.x, 0.5f) || axisCollision(coord.x, position.x + motion.x, PLAYER_SIZE_X / 2);
+				bool collisionY = axisCollision(top.y, coord.y, 0.5f) || axisCollision(bottom.y, coord.y, 0.5f) || axisCollision(coord.y, position.y + motion.y, PLAYER_SIZE_Y / 2);
+				bool collisionZ = axisCollision(top.z, coord.z, 0.5f) || axisCollision(bottom.z, coord.z, 0.5f) || axisCollision(coord.z, position.z + motion.z, PLAYER_SIZE_Z / 2);
 				
 				if (collisionX && collisionY && collisionZ) 
 					motion.x = 0.0f;
 			}
 			if (motion.y != 0.0f) {
-				glm::vec3 top = glm::vec3(position.x + WIDTH_X / 2, position.y + motion.y + HEIGHT_Y / 2, position.z + WIDTH_Z / 2);
-				glm::vec3 bottom = glm::vec3(position.x - WIDTH_X / 2, position.y + motion.y - HEIGHT_Y / 2, position.z - WIDTH_Z / 2);
+				glm::vec3 top = glm::vec3(position.x + PLAYER_SIZE_X / 2, position.y + motion.y + PLAYER_SIZE_Y / 2, position.z + PLAYER_SIZE_Z / 2);
+				glm::vec3 bottom = glm::vec3(position.x - PLAYER_SIZE_X / 2, position.y + motion.y - PLAYER_SIZE_Y / 2, position.z - PLAYER_SIZE_Z / 2);
 
-				bool collisionX = AABB_(top.x, coord.x, 0.5f) || AABB_(bottom.x, coord.x, 0.5f) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
-				bool collisionY = AABB_(top.y, coord.y, 0.5f) || AABB_(bottom.y, coord.y, 0.5f) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
-				bool collisionZ = AABB_(top.z, coord.z, 0.5f) || AABB_(bottom.z, coord.z, 0.5f) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+				bool collisionX = axisCollision(top.x, coord.x, 0.5f) || axisCollision(bottom.x, coord.x, 0.5f) || axisCollision(coord.x, position.x + motion.x, PLAYER_SIZE_X / 2);
+				bool collisionY = axisCollision(top.y, coord.y, 0.5f) || axisCollision(bottom.y, coord.y, 0.5f) || axisCollision(coord.y, position.y + motion.y, PLAYER_SIZE_Y / 2);
+				bool collisionZ = axisCollision(top.z, coord.z, 0.5f) || axisCollision(bottom.z, coord.z, 0.5f) || axisCollision(coord.z, position.z + motion.z, PLAYER_SIZE_Z / 2);
 
 				if (collisionX && collisionY && collisionZ) {
 					if (coord.y + 0.5f <= position.y + motion.y && state != FLYING) 
@@ -287,12 +294,12 @@ void Player::applyMotion(glm::vec3 motion, const Chunk& chunk)
 				}
 			}
 			if (motion.z != 0.0f) {
-				glm::vec3 top = glm::vec3(position.x + WIDTH_X / 2, position.y + HEIGHT_Y / 2, position.z + motion.z + WIDTH_Z / 2);
-				glm::vec3 bottom = glm::vec3(position.x - WIDTH_X / 2, position.y - HEIGHT_Y / 2, position.z + motion.z - WIDTH_Z / 2);
+				glm::vec3 top = glm::vec3(position.x + PLAYER_SIZE_X / 2, position.y + PLAYER_SIZE_Y / 2, position.z + motion.z + PLAYER_SIZE_Z / 2);
+				glm::vec3 bottom = glm::vec3(position.x - PLAYER_SIZE_X / 2, position.y - PLAYER_SIZE_Y / 2, position.z + motion.z - PLAYER_SIZE_Z / 2);
 
-				bool collisionX = AABB_(top.x, coord.x, 0.5f) || AABB_(bottom.x, coord.x, 0.5f) || AABB_(coord.x, position.x + motion.x, WIDTH_X / 2);
-				bool collisionY = AABB_(top.y, coord.y, 0.5f) || AABB_(bottom.y, coord.y, 0.5f) || AABB_(coord.y, position.y + motion.y, HEIGHT_Y / 2);
-				bool collisionZ = AABB_(top.z, coord.z, 0.5f) || AABB_(bottom.z, coord.z, 0.5f) || AABB_(coord.z, position.z + motion.z, WIDTH_Z / 2);
+				bool collisionX = axisCollision(top.x, coord.x, 0.5f) || axisCollision(bottom.x, coord.x, 0.5f) || axisCollision(coord.x, position.x + motion.x, PLAYER_SIZE_X / 2);
+				bool collisionY = axisCollision(top.y, coord.y, 0.5f) || axisCollision(bottom.y, coord.y, 0.5f) || axisCollision(coord.y, position.y + motion.y, PLAYER_SIZE_Y / 2);
+				bool collisionZ = axisCollision(top.z, coord.z, 0.5f) || axisCollision(bottom.z, coord.z, 0.5f) || axisCollision(coord.z, position.z + motion.z, PLAYER_SIZE_Z / 2);
 
 				if (collisionX && collisionY && collisionZ)
 					motion.z = 0.0f;
@@ -304,6 +311,48 @@ void Player::applyMotion(glm::vec3 motion, const Chunk& chunk)
 		state = MIDAIR;
 
 	position += motion;
+}
+
+std::vector<int> Player::getOrder()
+{
+	std::vector<int> order(3);
+	glm::vec3 absCameraFront = glm::vec3(abs(camera.Front.x), abs(camera.Front.y), abs(camera.Front.z));
+
+	// 1 - Ox; 2 - Oy; 3 - Oz;
+	if (absCameraFront.x >= absCameraFront.y && absCameraFront.x >= absCameraFront.z) {
+		order[0] = 1;
+		if (absCameraFront.y >= absCameraFront.z) {
+			order[1] = 2;
+			order[2] = 3;
+		}
+		else {
+			order[1] = 3;
+			order[2] = 2;
+		}
+	}
+	else if (absCameraFront.y >= absCameraFront.x && absCameraFront.y >= absCameraFront.z) {
+		order[0] = 2;
+		if (absCameraFront.x >= absCameraFront.z) {
+			order[1] = 1;
+			order[2] = 3;
+		}
+		else {
+			order[1] = 3;
+			order[2] = 1;
+		}
+	}
+	else {
+		order[0] = 3;
+		if (absCameraFront.x >= absCameraFront.y) {
+			order[1] = 1;
+			order[2] = 2;
+		}
+		else {
+			order[1] = 2;
+			order[2] = 1;
+		}
+	}
+	return order;
 }
 
 Player::~Player()

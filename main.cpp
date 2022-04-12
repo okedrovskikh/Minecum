@@ -1,8 +1,5 @@
 #include "game.h"
 
-const unsigned int WIDTH = 1280;
-const unsigned int HEIGHT = 720;
-
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -12,7 +9,8 @@ float lastY = HEIGHT / 2;
 
 Player player;
 
-Chunk chunk(glm::vec3(-3.0f, -14.0f, -3.0f));
+World world;
+Chunk chunk(glm::vec3(-3.0f, 0.0f, -3.0f));
 
 void processInput(GLFWwindow* window)
 {
@@ -75,7 +73,7 @@ int main()
 
     Shader playerShader("playerVertex.glsl", "playerFragment.glsl");
     Texture playerTexture("flAOQJ7reKc.jpg");
-    player = Player(glm::vec3(0.0f, 5.0f, 0.0f), VAOs[1], VBOs[1], playerShader, playerTexture);
+    player = Player(glm::vec3(0.0f, 16.0f, 0.0f), VAOs[1], VBOs[1], playerShader, playerTexture);
     player.shader.use();
     player.shader.setInt("playerTexture", 1);
 
@@ -107,13 +105,12 @@ int main()
             glm::mat4 view = player.camera.getViewMatrix();
             container.shader.setMat4("view", view);
             glBindVertexArray(VAOs[0]);
-            for (int i = 0; i < SIZE; i++) 
+            for (int i = 0; i < CHUNK_SIZE; i++)
             {
                 if (chunk.coordinate[i].second.first != AIR) {
                     glm::vec3 coord = chunk.coordinate[i].first;
 
-                    glm::mat4 model = glm::mat4(1.0f);
-                    model = glm::translate(model, coord);
+                    glm::mat4 model = glm::translate(glm::mat4(1.0f), coord);
                     container.shader.setMat4("model", model);
 
                     if (chunk.coordinate[i].second.second == true)

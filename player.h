@@ -2,14 +2,13 @@
 #include "shader.h"
 #include "camera.h"
 #include "texture.h"
-#include "chunk.h"
-#include "block.h"
+#include "world.h"
 #include <limits>
 #include <vector>
 
-const float WIDTH_X = 0.6f;
-const float HEIGHT_Y = 0.6f;
-const float WIDTH_Z = 0.6f;
+const float PLAYER_SIZE_X = 0.6f;
+const float PLAYER_SIZE_Y = 0.6f;
+const float PLAYER_SIZE_Z = 0.6f;
 
 const float INTERACTION_RADIUS = 3.0f;
 
@@ -80,7 +79,8 @@ private:
         -0.3f,  0.3f, -0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f
     };
     void applyMotion(glm::vec3 motion, const Chunk& chunk);
-    bool AABB_(float one, float two, float parameter = 0.3f);
+    bool axisCollision(float one, float two, float parameter = 0.3f);
+    std::vector<int> getOrder();
 };
 
 int sgn(float a);

@@ -7,12 +7,17 @@
 #include <map>
 #include "block.h"
 
-const unsigned int SIZE = 6 * 6 * 32;
+const unsigned int CHUNK_SIZE_X = 6;
+const unsigned int CHUNK_SIZE_Y = 32;
+const unsigned int CHUNK_SIZE_Z = 6;
+const unsigned int CHUNK_SIZE = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
 
 class Chunk
 {
 public:
 	std::pair<glm::vec3, std::pair<BlockType, bool>>* coordinate;
+	glm::vec3 top;
+	glm::vec3 bottom;
 	Chunk();
 	Chunk(glm::vec3 position);
 	int getIndex(glm::vec3 position);
