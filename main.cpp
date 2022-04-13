@@ -10,14 +10,13 @@ float lastY = HEIGHT / 2;
 Player player;
 
 World world;
-Chunk chunk(glm::vec3(-3.0f, 0.0f, -3.0f));
 
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     
-    player.processMovement(window, deltaTime, chunk);
+    player.processMovement(window, deltaTime, world);
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -44,9 +43,9 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-        player.processLeftClick(chunk);
+        player.processLeftClick(world.getChunks(player.camera.Position, player.camera.Position + INTERACTION_RADIUS * player.camera.Front));
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-        player.processRightClick(chunk);
+        player.processRightClick(world.getChunks(player.camera.Position, player.camera.Position + INTERACTION_RADIUS * player.camera.Front));
 }
 
 int main()
@@ -73,7 +72,7 @@ int main()
 
     Shader playerShader("playerVertex.glsl", "playerFragment.glsl");
     Texture playerTexture("flAOQJ7reKc.jpg");
-    player = Player(glm::vec3(0.0f, 16.0f, 0.0f), VAOs[1], VBOs[1], playerShader, playerTexture);
+    player = Player(glm::vec3(-12.0f, 16.0f, -12.0f), VAOs[1], VBOs[1], playerShader, playerTexture);
     player.shader.use();
     player.shader.setInt("playerTexture", 1);
 
@@ -96,29 +95,32 @@ int main()
         glBindTexture(GL_TEXTURE_2D, container.texture.ID);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, player.texture.ID);
-        
-        //chunk draw
+
+        //world draw
         {
+            glBindVertexArray(VAOs[0]);
             container.shader.use();
             glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
             container.shader.setMat4("projection", projection);
             glm::mat4 view = player.camera.getViewMatrix();
             container.shader.setMat4("view", view);
-            glBindVertexArray(VAOs[0]);
-            for (int i = 0; i < CHUNK_SIZE; i++)
+            for (int i = 0; i < WORLD_SIZE; i++)
             {
-                if (chunk.coordinate[i].second.first != AIR) {
-                    glm::vec3 coord = chunk.coordinate[i].first;
+                for (int j = 0; j < CHUNK_SIZE; j++)
+                {
+                    if (world.chunk[i]->coordinate[j].second.first != AIR) {
+                        glm::vec3 coord = world.chunk[i]->coordinate[j].first;
 
-                    glm::mat4 model = glm::translate(glm::mat4(1.0f), coord);
-                    container.shader.setMat4("model", model);
+                        glm::mat4 model = glm::translate(glm::mat4(1.0f), coord);
+                        container.shader.setMat4("model", model);
 
-                    if (chunk.coordinate[i].second.second == true)
-                        container.shader.setFloat("chosen", 0.6f);
-                    else
-                        container.shader.setFloat("chosen", 1.0f);
+                        if (world.chunk[i]->coordinate[j].second.second == true)
+                            container.shader.setFloat("chosen", 0.6f);
+                        else
+                            container.shader.setFloat("chosen", 1.0f);
 
-                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                        glDrawArrays(GL_TRIANGLES, 0, 36);
+                    }
                 }
             }
         }
@@ -150,7 +152,7 @@ int main()
         
         processInput(window);
         player.updateCamera();
-        player.rayCast(chunk);
+        player.rayCast(world.getChunks(player.camera.Position, player.camera.Position + INTERACTION_RADIUS * player.camera.Front));
         
         glfwSwapBuffers(window);
         glfwPollEvents();

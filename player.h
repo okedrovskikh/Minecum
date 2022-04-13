@@ -25,15 +25,16 @@ public:
     Texture texture;
 	Player();
     Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, const Shader& shader, const Texture& texture);
-    void processMovement(GLFWwindow* window, float deltaTime, const Chunk& chunk);
-    void rayCast(Chunk& chunk);
-    void processLeftClick(Chunk& chunk);
-    void processRightClick(Chunk& chunk);
+    void processMovement(GLFWwindow* window, float deltaTime, World& world);
+    void rayCast(std::vector<Chunk*> chunks);
+    void processLeftClick(std::vector<Chunk*> chunks);
+    void processRightClick(std::vector<Chunk*> chunks);
     void updateCamera();
     ~Player();
 private:
     float yVelocity;
     State state;
+    int interactionChunkIndex;
     int interactionBlockIndex;
     float vertices[288] = {
         -0.3f, -0.3f, -0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -78,7 +79,7 @@ private:
         -0.3f,  0.3f,  0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         -0.3f,  0.3f, -0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f
     };
-    void applyMotion(glm::vec3 motion, const Chunk& chunk);
+    void applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks);
     bool axisCollision(float one, float two, float parameter = 0.3f);
     std::vector<int> getOrder();
 };
