@@ -81,7 +81,7 @@ private:
     };
     void applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks);
     bool axisCollision(float one, float two, float parameter = 0.3f);
-    std::vector<int> getOrder();
+    int* getOrder();
 };
 
 int sgn(float a);

@@ -12,6 +12,7 @@ Player::Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, const S
 	this->texture = texture;
 
 	this->yVelocity = 0.0f;
+	assert(this->state = MIDAIR);
 	this->state = MIDAIR;
 	this->interactionBlockIndex = -1;
 	this->interactionChunkIndex = -1;
@@ -93,7 +94,7 @@ void Player::rayCast(std::vector<Chunk*> chunks)
 				bool collisionY = axisCollision(solution.y, coord.y, 0.5f);
 				bool collisionZ = axisCollision(solution.z, coord.z, 0.5f);
 
-				std::vector<int> order = getOrder();
+				int* order = getOrder();
 
 				for (int t = 0; t < INTERACTION_RADIUS * 50; t++)
 				{
@@ -142,6 +143,7 @@ void Player::rayCast(std::vector<Chunk*> chunks)
 						}
 					}
 				}
+				delete[] order;
 			}
 		}
 	}
@@ -162,7 +164,7 @@ void Player::processRightClick(std::vector<Chunk*> chunks)
 	glm::vec3 newBlock;
 	bool done = false;
 
-	if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].second.first == CONTAINER && chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].second.second == true) {
+	if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].second.second == true) {
 		glm::vec3 delta[3] = {
 			glm::vec3(sgn(camera.Position.x - chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.x), 0.0f, 0.0f),
 			glm::vec3(0.0f, sgn(camera.Position.y - chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.y), 0.0f),
@@ -178,7 +180,7 @@ void Player::processRightClick(std::vector<Chunk*> chunks)
 			bool collisionY = axisCollision(solution.y, newCoord.y, 0.5f);
 			bool collisionZ = axisCollision(solution.z, newCoord.z, 0.5f);
 
-			std::vector<int> order = getOrder();
+			int* order = getOrder();
 
 			for (int t = 0; t < INTERACTION_RADIUS * 50; t++)
 			{
@@ -227,6 +229,7 @@ void Player::processRightClick(std::vector<Chunk*> chunks)
 					}
 				}
 			}
+			delete[] order;
 		}
 	}
 
@@ -278,8 +281,8 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks)
 					glm::vec3 bottom = glm::vec3(position.x + motion.x - PLAYER_SIZE_X / 2, position.y - PLAYER_SIZE_Y / 2, position.z - PLAYER_SIZE_Z / 2);
 
 					bool collisionX = axisCollision(top.x, coord.x, 0.5f) || axisCollision(bottom.x, coord.x, 0.5f) || axisCollision(coord.x, position.x + motion.x, PLAYER_SIZE_X / 2);
-					bool collisionY = axisCollision(top.y, coord.y, 0.5f) || axisCollision(bottom.y, coord.y, 0.5f) || axisCollision(coord.y, position.y + motion.y, PLAYER_SIZE_Y / 2);
-					bool collisionZ = axisCollision(top.z, coord.z, 0.5f) || axisCollision(bottom.z, coord.z, 0.5f) || axisCollision(coord.z, position.z + motion.z, PLAYER_SIZE_Z / 2);
+					bool collisionY = axisCollision(top.y, coord.y, 0.5f) || axisCollision(bottom.y, coord.y, 0.5f) || axisCollision(coord.y, position.y, PLAYER_SIZE_Y / 2);
+					bool collisionZ = axisCollision(top.z, coord.z, 0.5f) || axisCollision(bottom.z, coord.z, 0.5f) || axisCollision(coord.z, position.z, PLAYER_SIZE_Z / 2);
 
 					if (collisionX && collisionY && collisionZ)
 						motion.x = 0.0f;
@@ -288,9 +291,9 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks)
 					glm::vec3 top = glm::vec3(position.x + PLAYER_SIZE_X / 2, position.y + motion.y + PLAYER_SIZE_Y / 2, position.z + PLAYER_SIZE_Z / 2);
 					glm::vec3 bottom = glm::vec3(position.x - PLAYER_SIZE_X / 2, position.y + motion.y - PLAYER_SIZE_Y / 2, position.z - PLAYER_SIZE_Z / 2);
 
-					bool collisionX = axisCollision(top.x, coord.x, 0.5f) || axisCollision(bottom.x, coord.x, 0.5f) || axisCollision(coord.x, position.x + motion.x, PLAYER_SIZE_X / 2);
+					bool collisionX = axisCollision(top.x, coord.x, 0.5f) || axisCollision(bottom.x, coord.x, 0.5f) || axisCollision(coord.x, position.x, PLAYER_SIZE_X / 2);
 					bool collisionY = axisCollision(top.y, coord.y, 0.5f) || axisCollision(bottom.y, coord.y, 0.5f) || axisCollision(coord.y, position.y + motion.y, PLAYER_SIZE_Y / 2);
-					bool collisionZ = axisCollision(top.z, coord.z, 0.5f) || axisCollision(bottom.z, coord.z, 0.5f) || axisCollision(coord.z, position.z + motion.z, PLAYER_SIZE_Z / 2);
+					bool collisionZ = axisCollision(top.z, coord.z, 0.5f) || axisCollision(bottom.z, coord.z, 0.5f) || axisCollision(coord.z, position.z, PLAYER_SIZE_Z / 2);
 
 					if (collisionX && collisionY && collisionZ) {
 						if (coord.y + 0.5f <= position.y + motion.y && state != FLYING)
@@ -307,8 +310,8 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks)
 					glm::vec3 top = glm::vec3(position.x + PLAYER_SIZE_X / 2, position.y + PLAYER_SIZE_Y / 2, position.z + motion.z + PLAYER_SIZE_Z / 2);
 					glm::vec3 bottom = glm::vec3(position.x - PLAYER_SIZE_X / 2, position.y - PLAYER_SIZE_Y / 2, position.z + motion.z - PLAYER_SIZE_Z / 2);
 
-					bool collisionX = axisCollision(top.x, coord.x, 0.5f) || axisCollision(bottom.x, coord.x, 0.5f) || axisCollision(coord.x, position.x + motion.x, PLAYER_SIZE_X / 2);
-					bool collisionY = axisCollision(top.y, coord.y, 0.5f) || axisCollision(bottom.y, coord.y, 0.5f) || axisCollision(coord.y, position.y + motion.y, PLAYER_SIZE_Y / 2);
+					bool collisionX = axisCollision(top.x, coord.x, 0.5f) || axisCollision(bottom.x, coord.x, 0.5f) || axisCollision(coord.x, position.x, PLAYER_SIZE_X / 2);
+					bool collisionY = axisCollision(top.y, coord.y, 0.5f) || axisCollision(bottom.y, coord.y, 0.5f) || axisCollision(coord.y, position.y, PLAYER_SIZE_Y / 2);
 					bool collisionZ = axisCollision(top.z, coord.z, 0.5f) || axisCollision(bottom.z, coord.z, 0.5f) || axisCollision(coord.z, position.z + motion.z, PLAYER_SIZE_Z / 2);
 
 					if (collisionX && collisionY && collisionZ)
@@ -324,9 +327,9 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks)
 	position += motion;
 }
 
-std::vector<int> Player::getOrder()
+int* Player::getOrder()
 {
-	std::vector<int> order(3);
+	int* order = new int[3];
 	glm::vec3 absCameraFront = glm::vec3(abs(camera.Front.x), abs(camera.Front.y), abs(camera.Front.z));
 
 	// 1 - Ox; 2 - Oy; 3 - Oz;

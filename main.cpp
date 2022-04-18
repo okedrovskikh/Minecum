@@ -10,6 +10,13 @@ float lastY = HEIGHT / 2;
 Player player;
 
 World world;
+std::vector<Chunk*> chunks;
+
+
+void window_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
 
 void processInput(GLFWwindow* window)
 {
@@ -43,9 +50,9 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-        player.processLeftClick(world.getChunks(player.camera.Position, player.camera.Position + INTERACTION_RADIUS * player.camera.Front));
+        player.processLeftClick(chunks);
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-        player.processRightClick(world.getChunks(player.camera.Position, player.camera.Position + INTERACTION_RADIUS * player.camera.Front));
+        player.processRightClick(chunks);
 }
 
 int main()
@@ -55,6 +62,7 @@ int main()
     if (window == NULL)
         return -1;
 
+    glfwSetWindowSizeCallback(window, window_size_callback);
     glfwSetCursorPosCallback(window, mouseCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -72,7 +80,7 @@ int main()
 
     Shader playerShader("playerVertex.glsl", "playerFragment.glsl");
     Texture playerTexture("flAOQJ7reKc.jpg");
-    player = Player(glm::vec3(-12.0f, 16.0f, -12.0f), VAOs[1], VBOs[1], playerShader, playerTexture);
+    player = Player(glm::vec3(-6.0f, 16.0f, -6.0f), VAOs[1], VBOs[1], playerShader, playerTexture);
     player.shader.use();
     player.shader.setInt("playerTexture", 1);
 
@@ -86,6 +94,17 @@ int main()
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        //fps
+        std::cout << round(1 / deltaTime) << std::endl;
+
+        chunks = world.getChunks(player.camera.Position, player.camera.Position + INTERACTION_RADIUS * player.camera.Front);
+        processInput(window);
+        player.updateCamera();
+        player.rayCast(chunks);
+
+        //debug
+        //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
 
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -147,13 +166,6 @@ int main()
             glDrawArrays(GL_TRIANGLES, 0, 12);
         }
  
-        //debug
-        //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
-        
-        processInput(window);
-        player.updateCamera();
-        player.rayCast(world.getChunks(player.camera.Position, player.camera.Position + INTERACTION_RADIUS * player.camera.Front));
-        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
