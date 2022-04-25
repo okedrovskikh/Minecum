@@ -12,7 +12,7 @@ Player::Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, const S
 	this->texture = texture;
 
 	this->yVelocity = 0.0f;
-	assert(this->state = MIDAIR);
+	this->state = MIDAIR;
 	this->state = MIDAIR;
 	this->interactionBlockIndex = -1;
 	this->interactionChunkIndex = -1;
