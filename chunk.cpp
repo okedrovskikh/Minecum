@@ -8,8 +8,8 @@ Chunk::Chunk()
 Chunk::Chunk(glm::vec3 position)
 {
 	this->bottom = position;
-	this->top = glm::vec3(position.x + CHUNK_SIZE_X, position.y, position.z + CHUNK_SIZE_Z);
-	coordinate = new std::pair<glm::vec3, std::pair<BlockType, bool>>[CHUNK_SIZE];
+	this->top = glm::vec3(position.x + CHUNK_SIZE_X, position.y + CHUNK_SIZE_Y, position.z + CHUNK_SIZE_Z);
+	coordinate = new std::pair<glm::vec3, BlockData>[CHUNK_SIZE];
 
 	int countY = -1;
 	int countZ = -1;
@@ -21,14 +21,16 @@ Chunk::Chunk(glm::vec3 position)
 		if (countZ % 6 == 0 && countX % 6 == 0)
 			countY++;
 		
-		if (countY < 16)
-			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {CONTAINER, false} };
+		if (countY < 15)
+			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {STONE, false} };
+		else if (countY == 15)
+			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {GRASS, false} };
 		else 
 			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {AIR, false} };
 	}
 }
 
-int Chunk::getIndex(glm::vec3 position)
+int Chunk::getBlockIndex(glm::vec3 position)
 {
 	for (int i = 0; i < CHUNK_SIZE; i++)
 	{

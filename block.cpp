@@ -35,13 +35,22 @@ Block::Block()
 
 }
 
-Block::Block(unsigned int& VAO, unsigned int& VBO, const Shader& shader, const Texture& texture) : geometry(VAO, VBO)
+Block::Block(std::string vertexPath, std::string fragmentPath, std::string texturePath, BlockType type) : geometry(VAO, VBO)
 {
-	this->shader = shader;
-	this->texture = texture;
+	this->shader = new Shader(vertexPath.c_str(), fragmentPath.c_str());
+	this->texture = new Texture(texturePath);
+    this->type = type;
+}
+
+void Block::draw()
+{
+
 }
 
 Block::~Block()
 {
-
+    delete shader;
+    delete texture;
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
 }

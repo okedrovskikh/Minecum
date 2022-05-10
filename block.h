@@ -5,7 +5,14 @@
 
 enum BlockType 
 {
-    CONTAINER, AIR
+    GRASS, STONE, AIR
+};
+
+struct BlockData
+{
+    BlockType type;
+    bool chosen;
+    bool solid;
 };
 
 class BlockPrototype
@@ -63,10 +70,14 @@ private:
 class Block
 {
 public:
-	Shader shader;
-	Texture texture;
+    unsigned int VAO;
+    unsigned int VBO;
+	Shader* shader;
+    Texture* texture;
+    BlockType type;
     Block();
-	Block(unsigned int& VAO, unsigned int& VBO, const Shader& shader, const Texture& texture);
+    Block(std::string vertexPath, std::string fragmentPath, std::string texturePath, BlockType type);
+    void draw();
     ~Block();
 private:
 	BlockPrototype geometry;

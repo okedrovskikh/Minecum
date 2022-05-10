@@ -4,8 +4,11 @@
 class Crosshair
 {
 public:
-    Shader shader;
-	Crosshair(unsigned int& VAO, unsigned int& VBO, const Shader& shader);
+    unsigned int VAO;
+    unsigned int VBO;
+    Shader* shader;
+	Crosshair(std::string vertexPath, std::string fragmentPath);
+    void draw();
 	~Crosshair();
 private:
     float vertices[288] = {

@@ -12,18 +12,10 @@ Player player;
 World world;
 std::vector<Chunk*> chunks;
 
-
-void window_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    
-    player.processMovement(window, deltaTime, world);
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -69,25 +61,22 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
+    std::vector<Block*> blocks = initBlocks();
 
-    unsigned int VBOs[3], VAOs[3];
+    player = Player(glm::vec3(-6.0f, 16.0f, -6.0f), "playerVertex.glsl", "playerFragment.glsl", "flAOQJ7reKc.jpg");
+    player.shader->use();
+    player.shader->setInt("playerTexture", 2);
 
-    Shader containerShader("vertexContainer.glsl", "fragmentContainer.glsl");
-    Texture containerTexture("container.jpg");
-    Block container(VAOs[0], VBOs[0], containerShader, containerTexture);
-    container.shader.use();
-    container.shader.setInt("texture1", 0);
+    Crosshair crosshair("crosshairVertex.glsl", "crosshairFragment.glsl");
+    crosshair.shader->use();
 
-    Shader playerShader("playerVertex.glsl", "playerFragment.glsl");
-    Texture playerTexture("flAOQJ7reKc.jpg");
-    player = Player(glm::vec3(-6.0f, 16.0f, -6.0f), VAOs[1], VBOs[1], playerShader, playerTexture);
-    player.shader.use();
-    player.shader.setInt("playerTexture", 1);
-
-    Shader crosshairShader("crosshairVertex.glsl", "crosshairFragment.glsl");
-    Crosshair crosshair(VAOs[2], VBOs[2], crosshairShader);
-    crosshair.shader.use();
-
+    int textureID = GL_TEXTURE0;
+    glActiveTexture(textureID);
+    glBindTexture(GL_TEXTURE_2D, blocks[0]->texture->ID);
+    glActiveTexture(textureID + 1);
+    glBindTexture(GL_TEXTURE_2D, blocks[1]->texture->ID);
+    glActiveTexture(textureID + 2);
+    glBindTexture(GL_TEXTURE_2D, player.texture->ID);
 
     while (!glfwWindowShouldClose(window))
     {   
@@ -96,10 +85,11 @@ int main()
         lastFrame = currentFrame;
 
         //fps
-        std::cout << round(1 / deltaTime) << std::endl;
+        std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
 
         chunks = world.getChunks(player.camera.Position, player.camera.Position + INTERACTION_RADIUS * player.camera.Front);
         processInput(window);
+        player.processMovement(window, deltaTime, world);
         player.updateCamera();
         player.rayCast(chunks);
 
@@ -110,35 +100,35 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, container.texture.ID);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, player.texture.ID);
 
         //world draw
         {
-            glBindVertexArray(VAOs[0]);
-            container.shader.use();
-            glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-            container.shader.setMat4("projection", projection);
             glm::mat4 view = player.camera.getViewMatrix();
-            container.shader.setMat4("view", view);
-            for (int i = 0; i < WORLD_SIZE; i++)
+            glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+
+            for (int k = 0; k < blocks.size(); k++)
             {
-                for (int j = 0; j < CHUNK_SIZE; j++)
+                glBindVertexArray(blocks[k]->VAO);
+                blocks[k]->shader->use();
+                blocks[k]->shader->setMat4("projection", projection);
+                blocks[k]->shader->setMat4("view", view);
+                for (int i = 0; i < WORLD_SIZE; i++)
                 {
-                    if (world.chunk[i]->coordinate[j].second.first != AIR) {
-                        glm::vec3 coord = world.chunk[i]->coordinate[j].first;
+                    for (int j = 0; j < CHUNK_SIZE; j++)
+                    {
+                        if (world.chunk[i]->coordinate[j].second.type == blocks[k]->type) {
+                            glm::vec3 coord = world.chunk[i]->coordinate[j].first;
 
-                        glm::mat4 model = glm::translate(glm::mat4(1.0f), coord);
-                        container.shader.setMat4("model", model);
+                            glm::mat4 model = glm::translate(glm::mat4(1.0f), coord);
+                            blocks[k]->shader->setMat4("model", model);
 
-                        if (world.chunk[i]->coordinate[j].second.second == true)
-                            container.shader.setFloat("chosen", 0.6f);
-                        else
-                            container.shader.setFloat("chosen", 1.0f);
+                            if (world.chunk[i]->coordinate[j].second.chosen == true)
+                                blocks[k]->shader->setFloat("chosen", 0.6f);
+                            else
+                                blocks[k]->shader->setFloat("chosen", 1.0f);
 
-                        glDrawArrays(GL_TRIANGLES, 0, 36);
+                            glDrawArrays(GL_TRIANGLES, 0, 36);
+                        }
                     }
                 }
             }
@@ -160,18 +150,11 @@ int main()
         }*/
 
         //crosshair draw
-        {
-            crosshair.shader.use();
-            glBindVertexArray(VAOs[2]);
-            glDrawArrays(GL_TRIANGLES, 0, 12);
-        }
+        crosshair.draw();
  
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    glDeleteVertexArrays(3, VAOs);
-    glDeleteBuffers(3, VBOs);
 
     glfwTerminate();
 

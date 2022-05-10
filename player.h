@@ -19,12 +19,14 @@ enum State {
 class Player
 {
 public:
+    unsigned int VAO;
+    unsigned int VBO;
     glm::vec3 position;
 	Camera camera;
-    Shader shader;
-    Texture texture;
+    Shader* shader;
+    Texture* texture;
 	Player();
-    Player(glm::vec3 position, unsigned int& VAO, unsigned int& VBO, const Shader& shader, const Texture& texture);
+    Player(glm::vec3 position, std::string vertexPath, std::string fragmentPath, std::string texturePath);
     void processMovement(GLFWwindow* window, float deltaTime, World& world);
     void rayCast(std::vector<Chunk*> chunks);
     void processLeftClick(std::vector<Chunk*> chunks);

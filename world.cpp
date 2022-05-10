@@ -48,9 +48,9 @@ bool World::lyingBetween(float coord, float delta, float firstBound, float secon
 	return ((firstBound <= coord - delta || firstBound <= coord + delta) && (coord - delta <= secondBound || coord + delta <= secondBound));
 }
 
-
 World::~World()
 {
 	for (int i = 0; i < WORLD_SIZE; i++)
 		delete chunk[i];
+	delete[] chunk;
 }
