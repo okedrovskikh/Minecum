@@ -12,9 +12,9 @@ class World
 public:
 	Chunk** chunk;
 	World();
-	std::vector<Chunk*> getChunks(glm::vec3 position);
-	std::vector<Chunk*> getChunks(glm::vec3 position, glm::vec3 newPosition);
+	std::vector<Chunk*> getChunks(glm::vec3 position) const;
+	std::vector<Chunk*> getChunks(glm::vec3 position, glm::vec3 newPosition) const;
 	~World();
 private:
-	bool lyingBetween(float coordinate, float delta, float firstBound, float secondBound);
+	bool lyingBetween(float coordinate, float delta, float firstBound, float secondBound) const;
 };

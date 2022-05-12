@@ -19,9 +19,11 @@ public:
 	std::pair<glm::vec3, BlockData>* coordinate;
 	glm::vec3 top;
 	glm::vec3 bottom;
+	std::vector<std::pair<glm::vec3, BlockData>> mesh;
 	Chunk();
 	Chunk(glm::vec3 position);
 	int getBlockIndex(glm::vec3 position);
+	void updateMesh();
 	~Chunk();
 private:
 };

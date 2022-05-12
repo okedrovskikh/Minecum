@@ -22,12 +22,13 @@ Chunk::Chunk(glm::vec3 position)
 			countY++;
 		
 		if (countY < 15)
-			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {STONE, false} };
+			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {STONE, false, true} };
 		else if (countY == 15)
-			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {GRASS, false} };
+			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {GRASS, false, true} };
 		else 
-			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {AIR, false} };
+			coordinate[countX] = { glm::vec3(position.x + countX % 6, position.y + countY, position.z + countZ % 6), {AIR, false, false} };
 	}
+	updateMesh();
 }
 
 int Chunk::getBlockIndex(glm::vec3 position)
@@ -39,6 +40,29 @@ int Chunk::getBlockIndex(glm::vec3 position)
 	}
 
 	return -1;
+}
+
+void Chunk::updateMesh()
+{
+	mesh.clear();
+	for (float y = bottom.y; y <= top.y; y++)
+	{
+		for (float z = bottom.z; z <= top.z; z++)
+		{
+			for (float x = bottom.x; x <= top.x; x++)
+			{
+				int index = getBlockIndex(glm::vec3(x, y, z));
+				//if (index != -1) {
+					if (coordinate[index].second.type != AIR) {
+						if (coordinate[getBlockIndex(glm::vec3(x - 1, y, z))].second.type == AIR || coordinate[getBlockIndex(glm::vec3(x, y - 1, z))].second.type == AIR || coordinate[getBlockIndex(glm::vec3(x, y, z - 1))].second.type == AIR ||
+							coordinate[getBlockIndex(glm::vec3(x + 1, y, z))].second.type == AIR || coordinate[getBlockIndex(glm::vec3(x, y + 1, z))].second.type == AIR || coordinate[getBlockIndex(glm::vec3(x, y, z + 1))].second.type == AIR) {
+							mesh.push_back(coordinate[index]);
+						}
+					}
+				//}
+			}
+		}
+	}
 }
 
 Chunk::~Chunk()

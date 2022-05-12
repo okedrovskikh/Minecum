@@ -11,9 +11,10 @@ Player::Player(glm::vec3 position, std::string vertexPath, std::string fragmentP
 	this->position = position;
 	this->shader = new Shader(vertexPath.c_str(), fragmentPath.c_str());
 	this->texture = new Texture(texturePath);
+	this->chosenBlock = GRASS;
 
 	this->yVelocity = 0.0f;
-	this->state = MIDAIR;
+	this->state = FLYING;
 	this->interactionBlockIndex = -1;
 	this->interactionChunkIndex = -1;
 
@@ -35,7 +36,7 @@ Player::Player(glm::vec3 position, std::string vertexPath, std::string fragmentP
 	glEnableVertexAttribArray(2);
 }
 
-void Player::processMovement(GLFWwindow* window, float deltaTime, World& world)
+void Player::processMovement(GLFWwindow* window, float deltaTime, const World& world)
 {
 	glm::vec3 motion = glm::vec3(0.0f);
 
@@ -81,10 +82,11 @@ void Player::rayCast(std::vector<Chunk*> chunks)
 	float shortestDistance = std::numeric_limits<float>::max();
 	interactionBlockIndex = -1;
 
-	for (int l = 0; l < chunks.size(); l++) {
+	for (int l = 0; l < chunks.size(); l++)
+	{
 		for (int i = 0; i < CHUNK_SIZE; i++)
 		{
-			if (chunks[l]->coordinate[i].second.type == GRASS || chunks[l]->coordinate[i].second.type == STONE) {
+			if (chunks[l]->coordinate[i].second.type != AIR) {
 				chunks[l]->coordinate[i].second.chosen = false;
 
 				glm::vec3 coord = chunks[l]->coordinate[i].first;
@@ -154,8 +156,10 @@ void Player::rayCast(std::vector<Chunk*> chunks)
 
 void Player::processLeftClick(std::vector<Chunk*> chunks)
 {
-	if (interactionChunkIndex != -1 && interactionBlockIndex != -1)
+	if (interactionChunkIndex != -1 && interactionBlockIndex != -1) {
 		chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].second.type = AIR;
+		chunks[interactionChunkIndex]->updateMesh();
+	}
 }
 
 void Player::processRightClick(std::vector<Chunk*> chunks)
@@ -246,8 +250,9 @@ void Player::processRightClick(std::vector<Chunk*> chunks)
 
 				if (!(collisionX && collisionY && collisionZ)) {
 					chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].second.chosen = false;
-					chunks[i]->coordinate[index].second.type = GRASS;
+					chunks[i]->coordinate[index].second.type = chosenBlock;
 					chunks[i]->coordinate[index].second.chosen = true;
+					chunks[i]->updateMesh();
 					return;
 				}
 			}
@@ -374,6 +379,8 @@ int* Player::getOrder()
 
 Player::~Player()
 {
+	delete shader;
+	delete texture;
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 }

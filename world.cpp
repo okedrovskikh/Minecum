@@ -17,7 +17,7 @@ World::World()
 	}
 }
 
-std::vector<Chunk*> World::getChunks(glm::vec3 position)
+std::vector<Chunk*> World::getChunks(glm::vec3 position) const
 {
 	std::vector<Chunk*> result;
 	for (int i = 0; i < WORLD_SIZE; i++)
@@ -30,7 +30,7 @@ std::vector<Chunk*> World::getChunks(glm::vec3 position)
 	return result;
 }
 
-std::vector<Chunk*> World::getChunks(glm::vec3 position, glm::vec3 newPosition)
+std::vector<Chunk*> World::getChunks(glm::vec3 position, glm::vec3 newPosition) const
 {
 	std::vector<Chunk*> result;
 	for (int i = 0; i < WORLD_SIZE; i++)
@@ -43,7 +43,7 @@ std::vector<Chunk*> World::getChunks(glm::vec3 position, glm::vec3 newPosition)
 	return result;
 }
 
-bool World::lyingBetween(float coord, float delta, float firstBound, float secondBound)
+bool World::lyingBetween(float coord, float delta, float firstBound, float secondBound) const
 {
 	return ((firstBound <= coord - delta || firstBound <= coord + delta) && (coord - delta <= secondBound || coord + delta <= secondBound));
 }

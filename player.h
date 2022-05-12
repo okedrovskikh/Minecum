@@ -25,13 +25,15 @@ public:
 	Camera camera;
     Shader* shader;
     Texture* texture;
+    BlockType chosenBlock;
 	Player();
     Player(glm::vec3 position, std::string vertexPath, std::string fragmentPath, std::string texturePath);
-    void processMovement(GLFWwindow* window, float deltaTime, World& world);
+    void processMovement(GLFWwindow* window, float deltaTime, const World& world);
     void rayCast(std::vector<Chunk*> chunks);
     void processLeftClick(std::vector<Chunk*> chunks);
     void processRightClick(std::vector<Chunk*> chunks);
     void updateCamera();
+    void drawBlock();
     ~Player();
 private:
     float yVelocity;

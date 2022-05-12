@@ -7,7 +7,7 @@ bool firstMouse = true;
 float lastX = WIDTH / 2;
 float lastY = HEIGHT / 2;
 
-Player player;
+Player* player;
 
 World world;
 std::vector<Chunk*> chunks;
@@ -36,15 +36,15 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    player.camera.ProcessMouseMovement(xoffset, yoffset);
+    player->camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-        player.processLeftClick(chunks);
+        player->processLeftClick(chunks);
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-        player.processRightClick(chunks);
+        player->processRightClick(chunks);
 }
 
 int main()
@@ -63,9 +63,9 @@ int main()
 
     std::vector<Block*> blocks = initBlocks();
 
-    player = Player(glm::vec3(-6.0f, 16.0f, -6.0f), "playerVertex.glsl", "playerFragment.glsl", "flAOQJ7reKc.jpg");
-    player.shader->use();
-    player.shader->setInt("playerTexture", 2);
+    player = new Player(glm::vec3(-6.0f, 16.0f, -6.0f), "playerVertex.glsl", "playerFragment.glsl", "flAOQJ7reKc.jpg");
+    player->shader->use();
+    player->shader->setInt("playerTexture", 2);
 
     Crosshair crosshair("crosshairVertex.glsl", "crosshairFragment.glsl");
     crosshair.shader->use();
@@ -76,10 +76,13 @@ int main()
     glActiveTexture(textureID + 1);
     glBindTexture(GL_TEXTURE_2D, blocks[1]->texture->ID);
     glActiveTexture(textureID + 2);
-    glBindTexture(GL_TEXTURE_2D, player.texture->ID);
+    glBindTexture(GL_TEXTURE_2D, player->texture->ID);
+
+    bool drawMesh = false;
 
     while (!glfwWindowShouldClose(window))
     {   
+        //data
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -87,14 +90,15 @@ int main()
         //fps
         std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
 
-        chunks = world.getChunks(player.camera.Position, player.camera.Position + INTERACTION_RADIUS * player.camera.Front);
+        //update player
+        chunks = world.getChunks(player->camera.Position, player->camera.Position + INTERACTION_RADIUS * player->camera.Front);
         processInput(window);
-        player.processMovement(window, deltaTime, world);
-        player.updateCamera();
-        player.rayCast(chunks);
+        player->processMovement(window, deltaTime, world);
+        player->updateCamera();
+        player->rayCast(chunks);
 
         //debug
-        //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << std::endl;
+        //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << " " << std::flush;
 
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -102,25 +106,37 @@ int main()
 
 
         //world draw
-        {
-            glm::mat4 view = player.camera.getViewMatrix();
-            glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = player->camera.getViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
-            for (int k = 0; k < blocks.size(); k++)
+        for (int k = 0; k < blocks.size(); k++)
+        {
+            glBindVertexArray(blocks[k]->VAO);
+            blocks[k]->shader->use();
+            blocks[k]->shader->setMat4("projection", projection);
+            blocks[k]->shader->setMat4("view", view);
+            for (int i = 0; i < WORLD_SIZE; i++)
             {
-                glBindVertexArray(blocks[k]->VAO);
-                blocks[k]->shader->use();
-                blocks[k]->shader->setMat4("projection", projection);
-                blocks[k]->shader->setMat4("view", view);
-                for (int i = 0; i < WORLD_SIZE; i++)
-                {
+                if (drawMesh) {
+                    for (int j = 0; j < world.chunk[i]->mesh.size(); j++)
+                    {
+                        if (world.chunk[i]->mesh[j].second.type == blocks[k]->type) {
+                            blocks[k]->shader->setMat4("model", glm::translate(glm::mat4(1.0f), world.chunk[i]->mesh[j].first));
+
+                            if (world.chunk[i]->mesh[j].second.chosen == true)
+                                blocks[k]->shader->setFloat("chosen", 0.6f);
+                            else
+                                blocks[k]->shader->setFloat("chosen", 1.0f);
+
+                            glDrawArrays(GL_TRIANGLES, 0, 36);
+                        }
+                    }
+                }
+                else {
                     for (int j = 0; j < CHUNK_SIZE; j++)
                     {
                         if (world.chunk[i]->coordinate[j].second.type == blocks[k]->type) {
-                            glm::vec3 coord = world.chunk[i]->coordinate[j].first;
-
-                            glm::mat4 model = glm::translate(glm::mat4(1.0f), coord);
-                            blocks[k]->shader->setMat4("model", model);
+                            blocks[k]->shader->setMat4("model", glm::translate(glm::mat4(1.0f), world.chunk[i]->coordinate[j].first));
 
                             if (world.chunk[i]->coordinate[j].second.chosen == true)
                                 blocks[k]->shader->setFloat("chosen", 0.6f);
@@ -135,19 +151,6 @@ int main()
         }
 
         //player draw
-        //lol, player are not drawing correctly
-        /*{
-            player.shader.use();
-            glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-            player.shader.setMat4("projection", projection);
-            glm::mat4 view = player.camera.getViewMatrix();
-            player.shader.setMat4("view", view);
-            glm::mat4 model = glm::mat4(1.0f);
-            glBindVertexArray(VAOs[1]);
-            model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
-            player.shader.setMat4("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }*/
 
         //crosshair draw
         crosshair.draw();
@@ -157,6 +160,8 @@ int main()
     }
 
     glfwTerminate();
+
+    delete player;
 
 	return 0;
 }
