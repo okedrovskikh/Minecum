@@ -97,7 +97,7 @@ int main()
         player->updateCamera();
         player->rayCast(chunks);
 
-        //debug
+        //player coordinate
         //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << " " << std::flush;
 
 
