@@ -162,6 +162,6 @@ int main()
     glfwTerminate();
 
     delete player;
-
+	
 	return 0;
 }
