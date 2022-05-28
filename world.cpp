@@ -15,19 +15,28 @@ World::World()
 		}
 		chunk[countX] = new Chunk(chunkPoint);
 	}
-}
 
-std::vector<Chunk*> World::getChunks(glm::vec3 position) const
-{
-	std::vector<Chunk*> result;
 	for (int i = 0; i < WORLD_SIZE; i++)
 	{
-		if (lyingBetween(position.x, 0.3f, chunk[i]->bottom.x - 0.5f, chunk[i]->top.x + 0.5f))
-			if (lyingBetween(position.z, 0.3f, chunk[i]->bottom.z - 0.5f, chunk[i]->top.z + 0.5f))
-				result.push_back(chunk[i]);
+		getChunksNeighboor(i);
 	}
 
-	return result;
+	for (int i = 0; i < WORLD_SIZE; i++)
+	{
+		chunk[i]->updateMesh();
+	}
+}
+
+Chunk* World::getChunk(glm::vec3 position) const
+{
+	for (int i = 0; i < WORLD_SIZE; i++)
+	{
+		if (lyingBetween(position.x, 0.3f, chunk[i]->bottom.x - 0.5f, chunk[i]->top.x + 0.5f) &&
+			lyingBetween(position.z, 0.3f, chunk[i]->bottom.z - 0.5f, chunk[i]->top.z + 0.5f))
+				return chunk[i];
+	}
+
+	return nullptr;
 }
 
 std::vector<Chunk*> World::getChunks(glm::vec3 position, glm::vec3 newPosition) const
@@ -41,6 +50,15 @@ std::vector<Chunk*> World::getChunks(glm::vec3 position, glm::vec3 newPosition) 
 	}
 
 	return result;
+}
+
+void World::getChunksNeighboor(int i)
+{
+	for (int j = 0; j < 4; j++)
+	{
+		chunk[i]->chunks[j] = getChunk(chunk[i]->bottom - vectors[j]);
+	}
+	//chunk[i]->updateMesh();
 }
 
 bool World::lyingBetween(float coord, float delta, float firstBound, float secondBound) const

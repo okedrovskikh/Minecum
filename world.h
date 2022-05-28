@@ -12,9 +12,12 @@ class World
 public:
 	Chunk** chunk;
 	World();
-	std::vector<Chunk*> getChunks(glm::vec3 position) const;
+	Chunk* getChunk(glm::vec3 position) const;
 	std::vector<Chunk*> getChunks(glm::vec3 position, glm::vec3 newPosition) const;
 	~World();
 private:
+	std::array<glm::vec3, 4> vectors = { glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f),
+										glm::vec3(1.0f, 0.0f, 0.0f) , glm::vec3(0.0f, 0.0f, 1.0f) };
+	void getChunksNeighboor(int i);
 	bool lyingBetween(float coordinate, float delta, float firstBound, float secondBound) const;
 };

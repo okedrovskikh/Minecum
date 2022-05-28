@@ -78,7 +78,7 @@ int main()
     glActiveTexture(textureID + 2);
     glBindTexture(GL_TEXTURE_2D, player->texture->ID);
 
-    bool drawMesh = false;
+
 
     while (!glfwWindowShouldClose(window))
     {   
@@ -91,13 +91,13 @@ int main()
         std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
 
         //update player
-        chunks = world.getChunks(player->camera.Position, player->camera.Position + INTERACTION_RADIUS * player->camera.Front);
         processInput(window);
+        chunks = world.getChunks(player->camera.Position, player->camera.Position + INTERACTION_RADIUS * player->camera.Front);
+        player->rayCast(chunks);
         player->processMovement(window, deltaTime, world);
         player->updateCamera();
-        player->rayCast(chunks);
 
-        //player coordinate
+        //debug
         //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << " " << std::flush;
 
 
@@ -117,34 +117,17 @@ int main()
             blocks[k]->shader->setMat4("view", view);
             for (int i = 0; i < WORLD_SIZE; i++)
             {
-                if (drawMesh) {
-                    for (int j = 0; j < world.chunk[i]->mesh.size(); j++)
-                    {
-                        if (world.chunk[i]->mesh[j].second.type == blocks[k]->type) {
-                            blocks[k]->shader->setMat4("model", glm::translate(glm::mat4(1.0f), world.chunk[i]->mesh[j].first));
+                for (int j = 0; j < world.chunk[i]->mesh.size(); j++)
+                {
+                    if (world.chunk[i]->mesh[j]->second.type == blocks[k]->type) {
+                        blocks[k]->shader->setMat4("model", glm::translate(glm::mat4(1.0f), world.chunk[i]->mesh[j]->first));
 
-                            if (world.chunk[i]->mesh[j].second.chosen == true)
-                                blocks[k]->shader->setFloat("chosen", 0.6f);
-                            else
-                                blocks[k]->shader->setFloat("chosen", 1.0f);
+                        if (world.chunk[i]->mesh[j]->second.chosen == true)
+                            blocks[k]->shader->setFloat("chosen", 0.6f);
+                        else
+                            blocks[k]->shader->setFloat("chosen", 1.0f);
 
-                            glDrawArrays(GL_TRIANGLES, 0, 36);
-                        }
-                    }
-                }
-                else {
-                    for (int j = 0; j < CHUNK_SIZE; j++)
-                    {
-                        if (world.chunk[i]->coordinate[j].second.type == blocks[k]->type) {
-                            blocks[k]->shader->setMat4("model", glm::translate(glm::mat4(1.0f), world.chunk[i]->coordinate[j].first));
-
-                            if (world.chunk[i]->coordinate[j].second.chosen == true)
-                                blocks[k]->shader->setFloat("chosen", 0.6f);
-                            else
-                                blocks[k]->shader->setFloat("chosen", 1.0f);
-
-                            glDrawArrays(GL_TRIANGLES, 0, 36);
-                        }
+                        glDrawArrays(GL_TRIANGLES, 0, 36);
                     }
                 }
             }
@@ -162,6 +145,6 @@ int main()
     glfwTerminate();
 
     delete player;
-	
+
 	return 0;
 }

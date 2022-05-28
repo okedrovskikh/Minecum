@@ -278,7 +278,7 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks)
 	bool overallCollision = false;
 
 	//a little problem with block's angles, cause when i need to fall for some reason i stand in the air
-	for (int j = 0; j < chunks.size(); j++) {
+	/*for (int j = 0; j < chunks.size(); j++) {
 		for (int i = 0; i < CHUNK_SIZE; i++)
 		{
 			if (chunks[j]->coordinate[i].second.type == GRASS || chunks[j]->coordinate[i].second.type == STONE) {
@@ -327,7 +327,7 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks)
 				}
 			}
 		}
-	}
+	}*/
 
 	if (!overallCollision && state != FLYING)
 		state = MIDAIR;

@@ -33,7 +33,6 @@ public:
     void processLeftClick(std::vector<Chunk*> chunks);
     void processRightClick(std::vector<Chunk*> chunks);
     void updateCamera();
-    void drawBlock();
     ~Player();
 private:
     float yVelocity;
