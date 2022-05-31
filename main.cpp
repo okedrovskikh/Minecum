@@ -88,7 +88,7 @@ int main()
         lastFrame = currentFrame;
 
         //fps
-        std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
+        //std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
 
         //update player
         processInput(window);
