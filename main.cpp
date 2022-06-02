@@ -63,7 +63,7 @@ int main()
 
     std::vector<Block*> blocks = initBlocks();
 
-    player = new Player(glm::vec3(-6.0f, 16.0f, -6.0f), "playerVertex.glsl", "playerFragment.glsl", "flAOQJ7reKc.jpg");
+    player = new Player(START_POINT + glm::vec3(0.0f, 16.0f, 6.0f), "playerVertex.glsl", "playerFragment.glsl", "flAOQJ7reKc.jpg");
     player->shader->use();
     player->shader->setInt("playerTexture", 2);
 
@@ -87,11 +87,12 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        processInput(window);
+
         //fps
         //std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
 
         //update player
-        processInput(window);
         chunks = world.getChunks(player->camera.Position, player->camera.Position + INTERACTION_RADIUS * player->camera.Front);
         player->rayCast(chunks);
         player->processMovement(window, deltaTime, world);

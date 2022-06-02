@@ -8,7 +8,7 @@ Chunk::Chunk()
 Chunk::Chunk(glm::vec3 position)
 {
 	this->bottom = position;
-	this->top = glm::vec3(position.x + CHUNK_SIZE_X, position.y + CHUNK_SIZE_Y, position.z + CHUNK_SIZE_Z);
+	this->top = glm::vec3(position.x + CHUNK_SIZE_X - 1, position.y + CHUNK_SIZE_Y, position.z + CHUNK_SIZE_Z - 1);
 	coordinate = new std::pair<glm::vec3, BlockData>[CHUNK_SIZE];
 
 	int countY = -1;
@@ -53,11 +53,6 @@ void Chunk::updateMesh()
 				int index = getBlockIndex(glm::vec3(x, y, z));
 				if (coordinate[index].second.type != AIR) {
 					int negativeX = getBlockIndex(glm::vec3(x - 1, y, z));
-					int positiveX = getBlockIndex(glm::vec3(x + 1, y, z));
-					int negativeY = getBlockIndex(glm::vec3(x, y - 1, z));
-					int positiveY = getBlockIndex(glm::vec3(x, y + 1, z));
-					int negativeZ = getBlockIndex(glm::vec3(x, y, z - 1));
-					int positiveZ = getBlockIndex(glm::vec3(x, y, z + 1));
 					if (negativeX == -1) {
 						if (chunks[0] != nullptr) {
 							negativeX = chunks[0]->getBlockIndex(glm::vec3(x - 1, y, z));
@@ -75,6 +70,7 @@ void Chunk::updateMesh()
 						mesh.push_back(coordinate + index);
 						continue;
 					}
+					int positiveX = getBlockIndex(glm::vec3(x + 1, y, z));
 					if (positiveX == -1) {
 						if (chunks[2] != nullptr) {
 							positiveX = chunks[2]->getBlockIndex(glm::vec3(x + 1, y, z));
@@ -92,6 +88,8 @@ void Chunk::updateMesh()
 						mesh.push_back(coordinate + index);
 						continue;
 					}
+					int negativeY = getBlockIndex(glm::vec3(x, y - 1, z));
+					int positiveY = getBlockIndex(glm::vec3(x, y + 1, z));
 					if (negativeY == -1 || positiveY == -1) {
 						mesh.push_back(coordinate + index);
 						continue;
@@ -100,6 +98,7 @@ void Chunk::updateMesh()
 						mesh.push_back(coordinate + index);
 						continue;
 					}
+					int negativeZ = getBlockIndex(glm::vec3(x, y, z - 1));
 					if (negativeZ == -1) {
 						if (chunks[1] != nullptr) {
 							negativeZ = chunks[1]->getBlockIndex(glm::vec3(x, y, z - 1));
@@ -117,6 +116,7 @@ void Chunk::updateMesh()
 						mesh.push_back(coordinate + index);
 						continue;
 					}
+					int positiveZ = getBlockIndex(glm::vec3(x, y, z + 1));
 					if (positiveZ == -1) {
 						if (chunks[3] != nullptr) {
 							positiveZ = chunks[3]->getBlockIndex(glm::vec3(x, y, z + 1));
