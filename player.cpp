@@ -159,6 +159,14 @@ void Player::processLeftClick(std::vector<Chunk*> chunks)
 	if (interactionChunkIndex != -1 && interactionBlockIndex != -1) {
 		chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].second.type = AIR;
 		chunks[interactionChunkIndex]->updateMesh();
+		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.x == chunks[interactionChunkIndex]->bottom.x)
+			chunks[interactionChunkIndex]->chunks[0]->updateMesh();
+		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.z == chunks[interactionChunkIndex]->bottom.z)
+			chunks[interactionChunkIndex]->chunks[1]->updateMesh();
+		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.x == chunks[interactionChunkIndex]->top.x)
+			chunks[interactionChunkIndex]->chunks[2]->updateMesh();
+		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.z == chunks[interactionChunkIndex]->top.z)
+			chunks[interactionChunkIndex]->chunks[3]->updateMesh();
 	}
 }
 
@@ -253,6 +261,14 @@ void Player::processRightClick(std::vector<Chunk*> chunks)
 					chunks[i]->coordinate[index].second.type = chosenBlock;
 					chunks[i]->coordinate[index].second.chosen = true;
 					chunks[i]->updateMesh();
+					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.x == chunks[interactionChunkIndex]->bottom.x)
+						chunks[interactionChunkIndex]->chunks[0]->updateMesh();
+					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.z == chunks[interactionChunkIndex]->bottom.z)
+						chunks[interactionChunkIndex]->chunks[1]->updateMesh();
+					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.x == chunks[interactionChunkIndex]->top.x)
+						chunks[interactionChunkIndex]->chunks[2]->updateMesh();
+					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.z == chunks[interactionChunkIndex]->top.z)
+						chunks[interactionChunkIndex]->chunks[3]->updateMesh();
 					return;
 				}
 			}
@@ -278,7 +294,7 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks)
 	bool overallCollision = false;
 
 	//a little problem with block's angles, cause when i need to fall for some reason i stand in the air
-	/*for (int j = 0; j < chunks.size(); j++) {
+	for (int j = 0; j < chunks.size(); j++) {
 		for (int i = 0; i < CHUNK_SIZE; i++)
 		{
 			if (chunks[j]->coordinate[i].second.type == GRASS || chunks[j]->coordinate[i].second.type == STONE) {
@@ -327,7 +343,7 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks)
 				}
 			}
 		}
-	}*/
+	}
 
 	if (!overallCollision && state != FLYING)
 		state = MIDAIR;
