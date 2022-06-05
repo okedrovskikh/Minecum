@@ -34,15 +34,15 @@ void window_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-std::vector<Block*> initBlocks()
+Block** initBlocks()
 {
-    std::vector<Block*> blocks;
+    Block** blocks = new Block*[2];
 
-    blocks.push_back(new Block("grassVertex.glsl", "grassFragment.glsl", "grass.jpg", GRASS));
+    blocks[0] = (new Block("grassVertex.glsl", "grassFragment.glsl", "grass.jpg", GRASS));
     blocks[0]->shader->use();
     blocks[0]->shader->setInt("grassTexture", 0);
 
-    blocks.push_back(new Block("stoneVertex.glsl", "stoneFragment.glsl", "stone.jpg", STONE));
+    blocks[1] = (new Block("stoneVertex.glsl", "stoneFragment.glsl", "stone.jpg", STONE));
     blocks[1]->shader->use();
     blocks[1]->shader->setInt("stoneTexture", 1);
 

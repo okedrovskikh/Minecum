@@ -18,4 +18,4 @@ const unsigned int HEIGHT = 720;
 
 GLFWwindow* windowInit(int width, int height, std::string name);
 void window_size_callback(GLFWwindow* window, int width, int height);
-std::vector<Block*> initBlocks();
+Block** initBlocks();

@@ -1,16 +1,20 @@
 #pragma once
+#include <limits>
+#include <vector>
+
 #include "shader.h"
 #include "camera.h"
 #include "texture.h"
 #include "world.h"
-#include <limits>
-#include <vector>
 
 const float PLAYER_SIZE_X = 0.6f;
 const float PLAYER_SIZE_Y = 0.6f;
 const float PLAYER_SIZE_Z = 0.6f;
 
 const float INTERACTION_RADIUS = 3.0f;
+const float MOVEMENT_SPEED = 3.0f;
+
+const float fMax = std::numeric_limits<float>::max();
 
 enum State {
     STANDING, MIDAIR, SWIMING, FLYING
@@ -28,10 +32,10 @@ public:
     BlockType chosenBlock;
 	Player();
     Player(glm::vec3 position, std::string vertexPath, std::string fragmentPath, std::string texturePath);
-    void processMovement(GLFWwindow* window, float deltaTime, const World& world);
-    void rayCast(std::vector<Chunk*> chunks);
-    void processLeftClick(std::vector<Chunk*> chunks);
-    void processRightClick(std::vector<Chunk*> chunks);
+    void processMovement(GLFWwindow* window, float deltaTime, const std::vector<Chunk*>& chunks);
+    void rayCast(std::vector<Chunk*>& chunks);
+    void processLeftClick(std::vector<Chunk*>& chunks);
+    void processRightClick(std::vector<Chunk*>& chunks);
     void updateCamera();
     ~Player();
 private:
@@ -82,7 +86,7 @@ private:
         -0.3f,  0.3f,  0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         -0.3f,  0.3f, -0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f
     };
-    void applyMotion(glm::vec3 motion, const std::vector<Chunk*> chunks);
+    void applyMotion(glm::vec3 motion, const std::vector<Chunk*>& chunks);
     bool axisCollision(float one, float two, float parameter = 0.3f);
     int* getOrder();
 };

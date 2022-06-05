@@ -23,7 +23,8 @@ public:
 	glm::vec3 bottom;
 	std::pair<glm::vec3, BlockData>* coordinate;
 	std::vector<std::pair<glm::vec3, BlockData>*> mesh;
-	std::array<Chunk*, 4> chunks = {nullptr, nullptr, nullptr, nullptr};
+	// 0 - negativeX, 1 - negativeZ, 2 - positiveX, 3 - positiveZ
+	std::array<Chunk*, 4> chunks = { nullptr, nullptr, nullptr, nullptr };
 	Chunk();
 	Chunk(glm::vec3 position);
 	int getBlockIndex(glm::vec3 position);

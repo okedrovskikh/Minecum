@@ -49,6 +49,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 
 int main()
 {
+
     GLFWwindow* window = windowInit(WIDTH, HEIGHT, "minecum");
 
     if (window == NULL)
@@ -61,7 +62,7 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    std::vector<Block*> blocks = initBlocks();
+    Block** blocks = initBlocks();
 
     player = new Player(START_POINT + glm::vec3(0.0f, 16.0f, 6.0f), "playerVertex.glsl", "playerFragment.glsl", "flAOQJ7reKc.jpg");
     player->shader->use();
@@ -79,7 +80,6 @@ int main()
     glBindTexture(GL_TEXTURE_2D, player->texture->ID);
 
 
-
     while (!glfwWindowShouldClose(window))
     {   
         //data
@@ -89,13 +89,16 @@ int main()
 
         processInput(window);
 
+        //update world
+        world.update(player->position);
+        chunks = world.getChunks(player->camera.Position, player->camera.Position + INTERACTION_RADIUS * player->camera.Front);
+
         //fps
-        //std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
+        std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
 
         //update player
-        chunks = world.getChunks(player->camera.Position, player->camera.Position + INTERACTION_RADIUS * player->camera.Front);
         player->rayCast(chunks);
-        player->processMovement(window, deltaTime, world);
+        player->processMovement(window, deltaTime, chunks);
         player->updateCamera();
 
         //debug
@@ -110,13 +113,13 @@ int main()
         glm::mat4 view = player->camera.getViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
-        for (int k = 0; k < blocks.size(); k++)
+        for (int k = 0; k < 2; k++)
         {
             glBindVertexArray(blocks[k]->VAO);
             blocks[k]->shader->use();
             blocks[k]->shader->setMat4("projection", projection);
             blocks[k]->shader->setMat4("view", view);
-            for (int i = 0; i < WORLD_SIZE; i++)
+            for (int i = 0; i < world.chunk.size(); i++)
             {
                 for (int j = 0; j < world.chunk[i]->mesh.size(); j++)
                 {
@@ -146,6 +149,10 @@ int main()
     glfwTerminate();
 
     delete player;
+
+    for (int i = 0; i < 2; i++)
+        delete blocks[i];
+    delete[] blocks;
 
 	return 0;
 }

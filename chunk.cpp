@@ -2,7 +2,7 @@
 
 Chunk::Chunk()
 {
-	this->coordinate = new std::pair<glm::vec3, BlockData>;
+	this->coordinate = new std::pair<glm::vec3, BlockData>[CHUNK_SIZE];
 }
 
 Chunk::Chunk(glm::vec3 position)

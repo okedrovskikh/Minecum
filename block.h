@@ -1,6 +1,7 @@
 #pragma once
 #include "texture.h"
 #include "shader.h"
+
 #include <map>
 
 enum BlockType 
@@ -15,12 +16,18 @@ struct BlockData
     bool solid;
 };
 
-class BlockPrototype
+class Block
 {
 public:
-    BlockPrototype();
-    BlockPrototype(unsigned int& VAO, unsigned int& VBO);
-    ~BlockPrototype();
+    unsigned int VAO;
+    unsigned int VBO;
+	Shader* shader;
+    Texture* texture;
+    BlockType type;
+    Block();
+    Block(std::string vertexPath, std::string fragmentPath, std::string texturePath, BlockType type);
+    void draw();
+    ~Block();
 private:
     float vertices[288] = {
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -67,18 +74,5 @@ private:
     };
 };
 
-class Block
-{
-public:
-    unsigned int VAO;
-    unsigned int VBO;
-	Shader* shader;
-    Texture* texture;
-    BlockType type;
-    Block();
-    Block(std::string vertexPath, std::string fragmentPath, std::string texturePath, BlockType type);
-    void draw();
-    ~Block();
-private:
-	BlockPrototype geometry;
-};
+glm::vec3 operator* (glm::vec3 f, float s);
+glm::vec3 operator* (float f, glm::vec3 s);
