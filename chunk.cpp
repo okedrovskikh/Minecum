@@ -36,10 +36,23 @@ Chunk::Chunk(glm::vec3 position)
 
 int Chunk::getBlockIndex(glm::vec3 position)
 {
-	for (int i = 0; i < CHUNK_SIZE; i++)
+	position = glm::vec3(round(position.x), round(position.y), round(position.z));
+
+	for (int z = 0; z < CHUNK_SIZE_Z; z++)
 	{
-		if (coordinate[i].coord.x == position.x && coordinate[i].coord.y == position.y && coordinate[i].coord.z == position.z)
-			return i;
+		if (z + bottom.z == position.z) {
+			for (int x = 0; x < CHUNK_SIZE_X; x++)
+			{
+				if (x + bottom.x == position.x) {
+					for (int y = 0; y < CHUNK_SIZE_Y; y++)
+					{
+						if (y + bottom.y == position.y) {
+							return (z * CHUNK_SIZE_X + x) * CHUNK_SIZE_Y + y;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return -1;

@@ -65,7 +65,7 @@ int main()
 
     player = new Player(world.getChunk(START_POINT)->getMaxHeight(START_POINT), "playerVertex.glsl", "playerFragment.glsl", "flAOQJ7reKc.jpg");
     player->shader->use();
-    player->shader->setInt("playerTexture", 2);
+    player->shader->setInt("playerTexture", 3);
 
     Crosshair crosshair("crosshairVertex.glsl", "crosshairFragment.glsl");
     crosshair.shader->use();
