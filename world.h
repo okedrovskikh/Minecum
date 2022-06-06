@@ -8,12 +8,13 @@ const glm::vec3 START_POINT = glm::vec3(-6.0f, 0.0f, -6.0f);
 
 const std::array<glm::vec3, 2> vec3e = { glm::vec3(1.0f, 0.0f, 0.0f) , glm::vec3(0.0f, 0.0f, 1.0f) };
 const std::array<glm::vec3, 4> vec3a = { glm::vec3(CHUNK_SIZE_X * 1.0f, 0.0f, CHUNK_SIZE_Z * -1.0f), glm::vec3(CHUNK_SIZE_X * 1.0f, 0.0f, 0.0f),
-					 glm::vec3(CHUNK_SIZE_X * 1.0f, 0.0f, CHUNK_SIZE_Z * 1.0f), glm::vec3(0.0f, 0.0f, CHUNK_SIZE_Z * 1.0f) };
+										 glm::vec3(CHUNK_SIZE_X * 1.0f, 0.0f, CHUNK_SIZE_Z * 1.0f), glm::vec3(0.0f, 0.0f, CHUNK_SIZE_Z * 1.0f) };
 
 class World
 {
 public:
 	std::vector<Chunk*> chunk;
+	std::array<Chunk*, 9> activeChunk;
 	World(glm::vec3 position = START_POINT);
 	Chunk* getChunk(glm::vec3 position) const;
 	std::vector<Chunk*> getChunks(glm::vec3 position, glm::vec3 newPosition) const;

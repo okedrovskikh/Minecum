@@ -14,7 +14,7 @@ Player::Player(glm::vec3 position, std::string vertexPath, std::string fragmentP
 	this->chosenBlock = GRASS;
 
 	this->yVelocity = 0.0f;
-	this->state = MIDAIR;
+	this->state = FLYING;
 	this->interactionBlockIndex = -1;
 	this->interactionChunkIndex = -1;
 
@@ -89,10 +89,10 @@ void Player::rayCast(std::vector<Chunk*>& chunks)
 		if (chunks[l] != nullptr) {
 			for (int i = 0; i < CHUNK_SIZE; i++)
 			{
-				if (chunks[l]->coordinate[i].second.type != AIR) {
-					chunks[l]->coordinate[i].second.chosen = false;
+				if (chunks[l]->coordinate[i].type != AIR) {
+					chunks[l]->coordinate[i].chosen = false;
 
-					glm::vec3 coord = chunks[l]->coordinate[i].first;
+					glm::vec3 coord = chunks[l]->coordinate[i].coord;
 					glm::vec3 solution = camera.Position;
 
 					bool collisionX = axisCollision(solution.x, coord.x, 0.5f);
@@ -154,21 +154,21 @@ void Player::rayCast(std::vector<Chunk*>& chunks)
 	delete[] order;
 
 	if (interactionChunkIndex != -1 && interactionBlockIndex != -1)
-		chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].second.chosen = true;
+		chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].chosen = true;
 }
 
 void Player::processLeftClick(std::vector<Chunk*>& chunks)
 {
 	if (interactionChunkIndex != -1 && interactionBlockIndex != -1) {
-		chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].second.type = AIR;
+		chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].type = AIR;
 		chunks[interactionChunkIndex]->updateMesh();
-		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.x == chunks[interactionChunkIndex]->bottom.x && chunks[interactionChunkIndex]->chunks[0] != nullptr)
+		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.x == chunks[interactionChunkIndex]->bottom.x && chunks[interactionChunkIndex]->chunks[0] != nullptr)
 			chunks[interactionChunkIndex]->chunks[0]->updateMesh();
-		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.z == chunks[interactionChunkIndex]->bottom.z && chunks[interactionChunkIndex]->chunks[1] != nullptr)
+		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.z == chunks[interactionChunkIndex]->bottom.z && chunks[interactionChunkIndex]->chunks[1] != nullptr)
 			chunks[interactionChunkIndex]->chunks[1]->updateMesh();
-		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.x == chunks[interactionChunkIndex]->top.x && chunks[interactionChunkIndex]->chunks[2] != nullptr)
+		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.x == chunks[interactionChunkIndex]->top.x && chunks[interactionChunkIndex]->chunks[2] != nullptr)
 			chunks[interactionChunkIndex]->chunks[2]->updateMesh();
-		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.z == chunks[interactionChunkIndex]->top.z && chunks[interactionChunkIndex]->chunks[3] != nullptr)
+		if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.z == chunks[interactionChunkIndex]->top.z && chunks[interactionChunkIndex]->chunks[3] != nullptr)
 			chunks[interactionChunkIndex]->chunks[3]->updateMesh();
 	}
 }
@@ -182,17 +182,17 @@ void Player::processRightClick(std::vector<Chunk*>& chunks)
 	glm::vec3 newBlock;
 	bool done = false;
 
-	if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].second.chosen == true) {
+	if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].chosen == true) {
 		glm::vec3 delta[3] = {
-			glm::vec3(sgn(camera.Position.x - chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.x), 0.0f, 0.0f),
-			glm::vec3(0.0f, sgn(camera.Position.y - chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.y), 0.0f),
-			glm::vec3(0.0f, 0.0f, sgn(camera.Position.z - chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.z))
+			glm::vec3(sgn(camera.Position.x - chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.x), 0.0f, 0.0f),
+			glm::vec3(0.0f, sgn(camera.Position.y - chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.y), 0.0f),
+			glm::vec3(0.0f, 0.0f, sgn(camera.Position.z - chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.z))
 		};
 
 		int* order = getOrder();
 		for (int i = 0; i < 3; i++)
 		{
-			glm::vec3 newCoord = chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first + delta[i];
+			glm::vec3 newCoord = chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord + delta[i];
 			glm::vec3 solution = camera.Position;
 
 			bool collisionX = axisCollision(solution.x, newCoord.x, 0.5f);
@@ -260,17 +260,17 @@ void Player::processRightClick(std::vector<Chunk*>& chunks)
 				bool collisionZ = axisCollision(newBlock.z - 0.5f, position.z, PLAYER_SIZE_Z / 2) || axisCollision(newBlock.z + 0.5f, position.z, PLAYER_SIZE_Z / 2) || axisCollision(position.z, newBlock.z, 0.5f);
 
 				if (!(collisionX && collisionY && collisionZ)) {
-					chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].second.chosen = false;
-					chunks[i]->coordinate[index].second.type = chosenBlock;
-					chunks[i]->coordinate[index].second.chosen = true;
+					chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].chosen = false;
+					chunks[i]->coordinate[index].type = chosenBlock;
+					chunks[i]->coordinate[index].chosen = true;
 					chunks[i]->updateMesh();
-					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.x == chunks[interactionChunkIndex]->bottom.x && chunks[interactionChunkIndex]->chunks[0] != nullptr)
+					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.x == chunks[interactionChunkIndex]->bottom.x && chunks[interactionChunkIndex]->chunks[0] != nullptr)
 						chunks[interactionChunkIndex]->chunks[0]->updateMesh();
-					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.z == chunks[interactionChunkIndex]->bottom.z && chunks[interactionChunkIndex]->chunks[1] != nullptr)
+					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.z == chunks[interactionChunkIndex]->bottom.z && chunks[interactionChunkIndex]->chunks[1] != nullptr)
 						chunks[interactionChunkIndex]->chunks[1]->updateMesh();
-					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.x == chunks[interactionChunkIndex]->top.x && chunks[interactionChunkIndex]->chunks[2] != nullptr)
+					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.x == chunks[interactionChunkIndex]->top.x && chunks[interactionChunkIndex]->chunks[2] != nullptr)
 						chunks[interactionChunkIndex]->chunks[2]->updateMesh();
-					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].first.z == chunks[interactionChunkIndex]->top.z && chunks[interactionChunkIndex]->chunks[3] != nullptr)
+					if (chunks[interactionChunkIndex]->coordinate[interactionBlockIndex].coord.z == chunks[interactionChunkIndex]->top.z && chunks[interactionChunkIndex]->chunks[3] != nullptr)
 						chunks[interactionChunkIndex]->chunks[3]->updateMesh();
 					return;
 				}
@@ -301,8 +301,8 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*>& chunks)
 		if (chunks[j] != nullptr) {
 			for (int i = 0; i < CHUNK_SIZE; i++)
 			{
-				if (chunks[j]->coordinate[i].second.type == GRASS || chunks[j]->coordinate[i].second.type == STONE) {
-					glm::vec3 coord = chunks[j]->coordinate[i].first;
+				if (chunks[j]->coordinate[i].type == GRASS || chunks[j]->coordinate[i].type == STONE) {
+					glm::vec3 coord = chunks[j]->coordinate[i].coord;
 
 					if (motion.x != 0.0f) {
 						glm::vec3 top = glm::vec3(position.x + motion.x + PLAYER_SIZE_X / 2, position.y + PLAYER_SIZE_Y / 2, position.z + PLAYER_SIZE_Z / 2);

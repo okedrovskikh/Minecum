@@ -75,13 +75,9 @@ void World::update(glm::vec3 position)
 void World::updateMeshes()
 {
 	for (int i = 0; i < chunk.size(); i++)
-	{
 		getChunksNeighboor(i);
-	}
 	for (int i = 0; i < chunk.size(); i++)
-	{
 		chunk[i]->updateMesh();
-	}
 }
 
 void World::getChunksNeighboor(int i)

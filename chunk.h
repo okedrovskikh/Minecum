@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/noise.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -21,8 +22,8 @@ class Chunk
 public:
 	glm::vec3 top;
 	glm::vec3 bottom;
-	std::pair<glm::vec3, BlockData>* coordinate;
-	std::vector<std::pair<glm::vec3, BlockData>*> mesh;
+	BlockData* coordinate;
+	std::vector<BlockData*> mesh;
 	// 0 - negativeX, 1 - negativeZ, 2 - positiveX, 3 - positiveZ
 	std::array<Chunk*, 4> chunks = { nullptr, nullptr, nullptr, nullptr };
 	Chunk();
@@ -31,4 +32,5 @@ public:
 	void updateMesh();
 	~Chunk();
 private:
+	std::array<int, CHUNK_SIZE_X* CHUNK_SIZE_Z> createChunkHeightMap(const glm::vec3 position);
 };

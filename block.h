@@ -6,11 +6,12 @@
 
 enum BlockType 
 {
-    GRASS, STONE, AIR
+    GRASS, STONE, AIR, SAND
 };
 
 struct BlockData
 {
+    glm::vec3 coord;
     BlockType type;
     bool chosen;
     bool solid;

@@ -36,15 +36,19 @@ void window_size_callback(GLFWwindow* window, int width, int height)
 
 Block** initBlocks()
 {
-    Block** blocks = new Block*[2];
+    Block** blocks = new Block*[3];
 
-    blocks[0] = (new Block("grassVertex.glsl", "grassFragment.glsl", "grass.jpg", GRASS));
+    blocks[0] = new Block("grassVertex.glsl", "grassFragment.glsl", "grass.jpg", GRASS);
     blocks[0]->shader->use();
     blocks[0]->shader->setInt("grassTexture", 0);
 
-    blocks[1] = (new Block("stoneVertex.glsl", "stoneFragment.glsl", "stone.jpg", STONE));
+    blocks[1] = new Block("stoneVertex.glsl", "stoneFragment.glsl", "stone.jpg", STONE);
     blocks[1]->shader->use();
     blocks[1]->shader->setInt("stoneTexture", 1);
+
+    blocks[2] = new Block("sandVertex.glsl", "sandFragment.glsl", "sand.jpg", SAND);
+    blocks[2]->shader->use();
+    blocks[2]->shader->setInt("sandtexture", 2);
 
     return blocks;
 }

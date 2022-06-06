@@ -49,7 +49,6 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 
 int main()
 {
-
     GLFWwindow* window = windowInit(WIDTH, HEIGHT, "minecum");
 
     if (window == NULL)
@@ -87,21 +86,22 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        //update input
         processInput(window);
 
         //update world
         world.update(player->position);
         chunks = world.getChunks(player->camera.Position, player->camera.Position + INTERACTION_RADIUS * player->camera.Front);
 
-        //fps
-        std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
-
         //update player
         player->rayCast(chunks);
         player->processMovement(window, deltaTime, chunks);
         player->updateCamera();
 
-        //debug
+        //display fps
+        std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
+
+        //display player coordinate
         //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << " " << std::flush;
 
 
@@ -113,7 +113,7 @@ int main()
         glm::mat4 view = player->camera.getViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(100.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
-        for (int k = 0; k < 2; k++)
+        for (int k = 0; k < 3; k++)
         {
             glBindVertexArray(blocks[k]->VAO);
             blocks[k]->shader->use();
@@ -123,10 +123,10 @@ int main()
             {
                 for (int j = 0; j < world.chunk[i]->mesh.size(); j++)
                 {
-                    if (world.chunk[i]->mesh[j]->second.type == blocks[k]->type) {
-                        blocks[k]->shader->setMat4("model", glm::translate(glm::mat4(1.0f), world.chunk[i]->mesh[j]->first));
+                    if (world.chunk[i]->mesh[j]->type == blocks[k]->type) {
+                        blocks[k]->shader->setMat4("model", glm::translate(glm::mat4(1.0f), world.chunk[i]->mesh[j]->coord));
 
-                        if (world.chunk[i]->mesh[j]->second.chosen == true)
+                        if (world.chunk[i]->mesh[j]->chosen == true)
                             blocks[k]->shader->setFloat("chosen", 0.6f);
                         else
                             blocks[k]->shader->setFloat("chosen", 1.0f);
@@ -150,7 +150,7 @@ int main()
 
     delete player;
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 3; i++)
         delete blocks[i];
     delete[] blocks;
 
