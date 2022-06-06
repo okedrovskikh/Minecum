@@ -30,7 +30,8 @@ public:
 	Chunk(glm::vec3 position);
 	int getBlockIndex(glm::vec3 position);
 	void updateMesh();
+	glm::vec3 getMaxHeight(glm::vec3 position);
 	~Chunk();
 private:
-	std::array<int, CHUNK_SIZE_X* CHUNK_SIZE_Z> createChunkHeightMap(const glm::vec3 position);
+	std::array<int, CHUNK_SIZE_X* CHUNK_SIZE_Z> createChunkHeightMap(glm::vec3 position);
 };

@@ -63,7 +63,7 @@ int main()
 
     Block** blocks = initBlocks();
 
-    player = new Player(START_POINT + glm::vec3(0.0f, 16.0f, 6.0f), "playerVertex.glsl", "playerFragment.glsl", "flAOQJ7reKc.jpg");
+    player = new Player(world.getChunk(START_POINT)->getMaxHeight(START_POINT), "playerVertex.glsl", "playerFragment.glsl", "flAOQJ7reKc.jpg");
     player->shader->use();
     player->shader->setInt("playerTexture", 2);
 

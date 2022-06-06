@@ -48,9 +48,9 @@ void Player::processMovement(GLFWwindow* window, float deltaTime, const std::vec
 	}
 	else if (state == FLYING) {
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-			motion += glm::vec3(0.0f, 1.0f, 0.0f) * deltaTime;
+			motion += MOVEMENT_SPEED * glm::vec3(0.0f, 1.0f, 0.0f) * deltaTime;
 		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-			motion -= glm::vec3(0.0f, 1.0f, 0.0f) * deltaTime;
+			motion -= MOVEMENT_SPEED * glm::vec3(0.0f, 1.0f, 0.0f) * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)

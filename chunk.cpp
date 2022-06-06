@@ -144,7 +144,22 @@ void Chunk::updateMesh()
 	}
 }
 
-std::array<int, CHUNK_SIZE_X* CHUNK_SIZE_Z> Chunk::createChunkHeightMap(const glm::vec3 position)
+glm::vec3 Chunk::getMaxHeight(glm::vec3 position)
+{
+	glm::vec3 result = position;
+	int index = -1;
+
+	for (int y = bottom.y; y < top.y; y++)
+	{
+		index = getBlockIndex(glm::vec3(result.x, y, result.z));
+		if (coordinate[index].type != AIR)
+			result = coordinate[index].coord + glm::vec3(0.0f, 1.0f, 0.0f);
+	}
+
+	return result;
+}
+
+std::array<int, CHUNK_SIZE_X* CHUNK_SIZE_Z> Chunk::createChunkHeightMap(glm::vec3 position)
 {
 	std::array<int, CHUNK_SIZE_X* CHUNK_SIZE_Z> heightMap;
 
