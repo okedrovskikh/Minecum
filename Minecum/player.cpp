@@ -297,7 +297,7 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*>& chunks)
 	bool overallCollisionY = false;
 
 	//a little problem with block's angles, cause when i need to fall for some reason i stand in the air
-	/*for (int j = 0; j < chunks.size(); j++) {
+	for (int j = 0; j < chunks.size(); j++) {
 		if (chunks[j] != nullptr) {
 			for (int i = 0; i < CHUNK_SIZE; i++)
 			{
@@ -348,7 +348,7 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*>& chunks)
 				}
 			}
 		}
-	}*/
+	}
 
 	if (!overallCollisionY && state != FLYING)
 		state = MIDAIR;
