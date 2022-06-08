@@ -46,11 +46,16 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         player->processRightClick(world);
 }
 
-int main()
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hpInstance, LPSTR nCmdLine, int iCmdShow)
 {
+    AllocConsole();
+    freopen("CONIN$", "r", stdin);
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+
     GLFWwindow* window = windowInit(WIDTH, HEIGHT, "minecum");
 
-    if (window == NULL)
+    if (window == nullptr)
         return -1;
 
     glfwSetWindowSizeCallback(window, window_size_callback);
@@ -78,6 +83,9 @@ int main()
     glBindTexture(GL_TEXTURE_2D, player->texture->ID);
 
 
+    bool drawActiveChunks = false;
+    bool drawPlayer = false;
+
     while (!glfwWindowShouldClose(window))
     {   
         //data
@@ -88,6 +96,9 @@ int main()
         //update input
         processInput(window);
 
+        //display fps
+        std::cout << "\r" << "FPS: " << round(1 / deltaTime) << "     " << std::flush;
+
         //update world
         world.update(player->position);
 
@@ -96,11 +107,8 @@ int main()
         player->processMovement(window, deltaTime, world);
         player->updateCamera();
 
-        //display fps
-        std::cout << "\r" << "fps " << round(1 / deltaTime) << " " << std::flush;
-
         //display player coordinate
-        //std::cout << player.position.x << " " << player.position.y << " " << player.position.z << " " << std::flush;
+        //std::cout << "Position: " << player->position.x << " " << player->position.y << " " << player->position.z << "\n";
 
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -117,25 +125,53 @@ int main()
             blocks[k]->shader->use();
             blocks[k]->shader->setMat4("projection", projection);
             blocks[k]->shader->setMat4("view", view);
-            for (int i = 0; i < world.chunk.size(); i++)
-            {
-                for (int j = 0; j < world.chunk[i]->mesh.size(); j++)
+            if (drawActiveChunks) {
+                for (int i = 0; i < world.activeChunk.size(); i++)
                 {
-                    if (world.chunk[i]->mesh[j]->type == blocks[k]->type) {
-                        blocks[k]->shader->setMat4("model", glm::translate(glm::mat4(1.0f), world.chunk[i]->mesh[j]->coord));
+                    for (int j = 0; j < world.activeChunk[i]->mesh.size(); j++)
+                    {
+                        if (world.activeChunk[i]->mesh[j]->type == blocks[k]->type) {
+                            blocks[k]->shader->setMat4("model", glm::translate(glm::mat4(1.0f), world.activeChunk[i]->mesh[j]->coord));
 
-                        if (world.chunk[i]->mesh[j]->chosen == true)
-                            blocks[k]->shader->setFloat("chosen", 0.6f);
-                        else
-                            blocks[k]->shader->setFloat("chosen", 1.0f);
+                            if (world.activeChunk[i]->mesh[j]->chosen == true)
+                                blocks[k]->shader->setFloat("chosen", 0.6f);
+                            else
+                                blocks[k]->shader->setFloat("chosen", 1.0f);
 
-                        glDrawArrays(GL_TRIANGLES, 0, 36);
+                            glDrawArrays(GL_TRIANGLES, 0, 36);
+                        }
+                    }
+                }
+            }
+            else {
+                for (int i = 0; i < world.chunk.size(); i++)
+                {
+                    for (int j = 0; j < world.chunk[i]->mesh.size(); j++)
+                    {
+                        if (world.chunk[i]->mesh[j]->type == blocks[k]->type) {
+                            blocks[k]->shader->setMat4("model", glm::translate(glm::mat4(1.0f), world.chunk[i]->mesh[j]->coord));
+
+                            if (world.chunk[i]->mesh[j]->chosen == true)
+                                blocks[k]->shader->setFloat("chosen", 0.6f);
+                            else
+                                blocks[k]->shader->setFloat("chosen", 1.0f);
+
+                            glDrawArrays(GL_TRIANGLES, 0, 36);
+                        }
                     }
                 }
             }
         }
 
         //player draw
+        if (drawPlayer) {
+            glBindVertexArray(player->VAO);
+            player->shader->use();
+            player->shader->setMat4("projection", projection);
+            player->shader->setMat4("view", view);
+            player->shader->setMat4("model", glm::translate(glm::mat4(1.0f), player->position));
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         //crosshair draw
         crosshair.draw();

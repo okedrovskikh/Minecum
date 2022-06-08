@@ -60,19 +60,24 @@ int Chunk::getBlockIndex(glm::vec3 position)
 
 void Chunk::updateMesh()
 {
+	int index;
+	int negativeX, positiveX;
+	int negativeY, positiveY;
+	int negativeZ, positiveZ;
+
 	mesh.clear();
-	for (float z = bottom.z; z <= top.z; z++)
+	for (int z = 0; z < CHUNK_SIZE_Z; z++)
 	{
-		for (float x = bottom.x; x <= top.x; x++)
+		for (int x = 0; x < CHUNK_SIZE_X; x++)
 		{
-			for (float y = bottom.y; y <= top.y; y++)
+			for (int y = 0; y < CHUNK_SIZE_Y; y++)
 			{
-				int index = getBlockIndex(glm::vec3(x, y, z));
+				index = (z * CHUNK_SIZE_X + x) * CHUNK_SIZE_Y + y;
 				if (coordinate[index].type != AIR) {
-					int negativeX = getBlockIndex(glm::vec3(x - 1, y, z));
+					negativeX = getBlockIndex(glm::vec3(x - 1 + bottom.x, y + bottom.y, z + bottom.z));
 					if (negativeX == -1) {
 						if (chunks[0] != nullptr) {
-							negativeX = chunks[0]->getBlockIndex(glm::vec3(x - 1, y, z));
+							negativeX = chunks[0]->getBlockIndex(glm::vec3(x - 1 + bottom.x, y + bottom.y, z + bottom.z));
 							if (chunks[0]->coordinate[negativeX].type == AIR) {
 								mesh.push_back(coordinate + index);
 								continue;
@@ -87,10 +92,10 @@ void Chunk::updateMesh()
 						mesh.push_back(coordinate + index);
 						continue;
 					}
-					int positiveX = getBlockIndex(glm::vec3(x + 1, y, z));
+					positiveX = getBlockIndex(glm::vec3(x + 1 + bottom.x, y + bottom.y, z + bottom.z));
 					if (positiveX == -1) {
 						if (chunks[2] != nullptr) {
-							positiveX = chunks[2]->getBlockIndex(glm::vec3(x + 1, y, z));
+							positiveX = chunks[2]->getBlockIndex(glm::vec3(x + 1 + bottom.x, y + bottom.y, z + bottom.z));
 							if (chunks[2]->coordinate[positiveX].type == AIR) {
 								mesh.push_back(coordinate + index);
 								continue;
@@ -105,8 +110,8 @@ void Chunk::updateMesh()
 						mesh.push_back(coordinate + index);
 						continue;
 					}
-					int negativeY = getBlockIndex(glm::vec3(x, y - 1, z));
-					int positiveY = getBlockIndex(glm::vec3(x, y + 1, z));
+					negativeY = getBlockIndex(glm::vec3(x + bottom.x, y - 1 + bottom.y, z + bottom.z));
+					positiveY = getBlockIndex(glm::vec3(x + bottom.x, y + 1 + bottom.y, z + bottom.z));
 					if (negativeY == -1 || positiveY == -1) {
 						mesh.push_back(coordinate + index);
 						continue;
@@ -115,10 +120,10 @@ void Chunk::updateMesh()
 						mesh.push_back(coordinate + index);
 						continue;
 					}
-					int negativeZ = getBlockIndex(glm::vec3(x, y, z - 1));
+					negativeZ = getBlockIndex(glm::vec3(x + bottom.x, y + bottom.y, z - 1 + bottom.z));
 					if (negativeZ == -1) {
 						if (chunks[1] != nullptr) {
-							negativeZ = chunks[1]->getBlockIndex(glm::vec3(x, y, z - 1));
+							negativeZ = chunks[1]->getBlockIndex(glm::vec3(x + bottom.x, y + bottom.y, z - 1 + bottom.z));
 							if (chunks[1]->coordinate[negativeZ].type == AIR) {
 								mesh.push_back(coordinate + index);
 								continue;
@@ -133,10 +138,10 @@ void Chunk::updateMesh()
 						mesh.push_back(coordinate + index);
 						continue;
 					}
-					int positiveZ = getBlockIndex(glm::vec3(x, y, z + 1));
+					positiveZ = getBlockIndex(glm::vec3(x + bottom.x, y + bottom.y, z + 1 + bottom.z));
 					if (positiveZ == -1) {
 						if (chunks[3] != nullptr) {
-							positiveZ = chunks[3]->getBlockIndex(glm::vec3(x, y, z + 1));
+							positiveZ = chunks[3]->getBlockIndex(glm::vec3(x + bottom.x, y + bottom.y, z + 1 + bottom.z));
 							if (chunks[3]->coordinate[positiveZ].type == AIR) {
 								mesh.push_back(coordinate + index);
 								continue;
@@ -160,13 +165,13 @@ void Chunk::updateMesh()
 glm::vec3 Chunk::getMaxHeight(glm::vec3 position)
 {
 	glm::vec3 result = position;
-	int index = -1;
+	int index = static_cast<int>(((position.z - bottom.z) * CHUNK_SIZE_X + (position.x - bottom.x)) * CHUNK_SIZE_Y + (position.y - bottom.y));
+	int bottomY = static_cast<int>(bottom.y);
 
-	for (int y = bottom.y; y < top.y; y++)
+	for (int y = 0; y < CHUNK_SIZE_Y; y++)
 	{
-		index = getBlockIndex(glm::vec3(result.x, y, result.z));
-		if (coordinate[index].type != AIR)
-			result = coordinate[index].coord + glm::vec3(0.0f, 1.0f, 0.0f);
+		if (coordinate[index * CHUNK_SIZE_Y + y + bottomY].type != AIR)
+			result = coordinate[index * CHUNK_SIZE_Y + y + bottomY].coord + glm::vec3(0.0f, 1.0f, 0.0f);
 	}
 
 	return result;

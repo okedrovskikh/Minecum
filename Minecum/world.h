@@ -16,7 +16,6 @@ class World
 public:
 	std::vector<Chunk*> chunk;
 	std::vector<Chunk*> activeChunk;
-	//std::array<Chunk*, (DRAW_DISTANCE * DRAW_DISTANCE + 1) * (DRAW_DISTANCE * DRAW_DISTANCE + 1)> activeChunk;
 	World(glm::vec3 position = START_POINT);
 	Chunk* getChunk(glm::vec3 position) const;
 	void update(glm::vec3 position);

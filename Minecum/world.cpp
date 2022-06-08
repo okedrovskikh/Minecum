@@ -79,11 +79,13 @@ void World::getChunksNeighboor(int i)
 	int j = 0;
 	for (; j < 2; j++)
 	{
-		chunk[i]->chunks[j] = getChunk(chunk[i]->bottom - vec3e[j]);
+		if (chunk[i]->chunks[j] == nullptr)
+			chunk[i]->chunks[j] = getChunk(chunk[i]->bottom - vec3e[j]);
 	}
 	for (; j < 4; j++)
 	{
-		chunk[i]->chunks[j] = getChunk(chunk[i]->top + vec3e[j % 2]);
+		if (chunk[i]->chunks[j] == nullptr)
+			chunk[i]->chunks[j] = getChunk(chunk[i]->top + vec3e[j % 2]);
 	}
 }
 

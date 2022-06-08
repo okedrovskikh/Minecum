@@ -1,8 +1,10 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <thread>
+#include <Windows.h>
 
 #include "player.h"
 #include "shader.h"

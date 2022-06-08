@@ -6,7 +6,7 @@ Player::Player()
 	this->texture = nullptr;
 }
 
-Player::Player(glm::vec3 position, std::string vertexPath, std::string fragmentPath, std::string texturePath) : camera(glm::vec3(position.x, position.y + PLAYER_SIZE_Y / 2 - 0.13f, position.z))
+Player::Player(glm::vec3 position, std::string vertexPath, std::string fragmentPath, std::string texturePath) : camera(glm::vec3(position.x, position.y + PLAYER_SIZE_Y, position.z))
 {
 	this->position = position;
 	this->shader = new Shader(vertexPath.c_str(), fragmentPath.c_str());
@@ -281,7 +281,7 @@ void Player::processRightClick(const World& world)
 
 void Player::updateCamera()
 {
-	camera.update(glm::vec3(position.x, position.y + PLAYER_SIZE_Y / 2 - 0.13f, position.z));
+	camera.update(glm::vec3(position.x, position.y + PLAYER_SIZE_Y, position.z));
 }
 
 bool Player::axisCollision(float one, float two, float parameter)
@@ -297,7 +297,7 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*>& chunks)
 	bool overallCollisionY = false;
 
 	//a little problem with block's angles, cause when i need to fall for some reason i stand in the air
-	for (int j = 0; j < chunks.size(); j++) {
+	/*for (int j = 0; j < chunks.size(); j++) {
 		if (chunks[j] != nullptr) {
 			for (int i = 0; i < CHUNK_SIZE; i++)
 			{
@@ -348,7 +348,7 @@ void Player::applyMotion(glm::vec3 motion, const std::vector<Chunk*>& chunks)
 				}
 			}
 		}
-	}
+	}*/
 
 	if (!overallCollisionY && state != FLYING)
 		state = MIDAIR;
