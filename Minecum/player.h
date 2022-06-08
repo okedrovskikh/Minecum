@@ -32,7 +32,7 @@ public:
     BlockType chosenBlock;
 	Player();
     Player(glm::vec3 position, std::string vertexPath, std::string fragmentPath, std::string texturePath);
-    void processMovement(GLFWwindow* window, float deltaTime, const World& world);
+    void processMovement(GLFWwindow*& window, float deltaTime, const World& world);
     void rayCast(const World& world);
     void processLeftClick(const World& world);
     void processRightClick(const World& world);
@@ -44,47 +44,47 @@ private:
     int interactionChunkIndex;
     int interactionBlockIndex;
     float vertices[288] = {
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+         PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+         PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+         PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+         PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+         PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+         PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-         0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+         PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+         PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+         PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+         PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+         PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+         PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+         PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+         PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+         PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -PLAYER_SIZE_X / 2, -PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
 
-        -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f
+        -PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+         PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+         PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+         PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2,  PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -PLAYER_SIZE_X / 2,  PLAYER_SIZE_Y / 2, -PLAYER_SIZE_Z / 2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f
     };
     void applyMotion(glm::vec3 motion, const std::vector<Chunk*>& chunks);
     bool axisCollision(float one, float two, float parameter = 0.3f);

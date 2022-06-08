@@ -2,7 +2,15 @@
 
 World::World(glm::vec3 position)
 {
-	update(position);
+	extendWorld(position);
+
+	for (int i = 0; i < chunk.size(); i++)
+		getChunksNeighboor(i);
+
+	updateActivechunks(position);
+
+	for (int i = 0; i < chunk.size(); i++)
+		chunk[i]->updateMesh();
 }
 
 Chunk* World::getChunk(glm::vec3 position) const
@@ -16,6 +24,34 @@ Chunk* World::getChunk(glm::vec3 position) const
 	}
 
 	return nullptr;
+}
+
+bool World::extendWorld(glm::vec3 position)
+{
+	bool update = false;
+	Chunk* currChunk = getChunk(position);
+
+	if (currChunk == nullptr) {
+		currChunk = new Chunk(position);
+		chunk.push_back(currChunk);
+		update = true;
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		if (getChunk(position + vec3a[i]) == nullptr) {
+			chunk.push_back(new Chunk(currChunk->bottom + vec3a[i]));
+			update = true;
+		}
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		if (getChunk(position - vec3a[i]) == nullptr) {
+			chunk.push_back(new Chunk(currChunk->bottom - vec3a[i]));
+			update = true;
+		}
+	}
+
+	return update;
 }
 
 void World::updateActivechunks(glm::vec3 position)
@@ -37,30 +73,7 @@ void World::updateActivechunks(glm::vec3 position)
 
 void World::update(glm::vec3 position)
 {
-	bool done = false;
-	Chunk* currChunk = getChunk(position);
-
-	if (currChunk == nullptr) {
-		currChunk = new Chunk(position);
-		chunk.push_back(currChunk);
-		done = true;
-	}
-	for (int i = 0; i < 4; i++)
-	{
-		if (getChunk(position + vec3a[i]) == nullptr) {
-			chunk.push_back(new Chunk(currChunk->bottom + vec3a[i]));
-			done = true;
-		}
-	}
-	for (int i = 0; i < 4; i++)
-	{
-		if (getChunk(position - vec3a[i]) == nullptr) {
-			chunk.push_back(new Chunk(currChunk->bottom - vec3a[i]));
-			done = true;
-		}
-	}
-
-	if (done)
+	if (extendWorld(position))
 		updateMeshes();
 
 	updateActivechunks(position);

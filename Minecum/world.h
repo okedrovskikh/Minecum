@@ -23,6 +23,7 @@ public:
 private:
 	void updateMeshes();
 	void getChunksNeighboor(int i);
+	bool extendWorld(glm::vec3 position);
 	void updateActivechunks(glm::vec3 position);
 	bool lyingBetween(float coordinate, float delta, float firstBound, float secondBound) const;
 };
