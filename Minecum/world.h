@@ -21,9 +21,9 @@ public:
 	void update(glm::vec3 position);
 	~World();
 private:
-	void updateMeshes();
+	void updateMesh();
 	void getChunksNeighboor(int i);
 	bool extendWorld(glm::vec3 position);
-	void updateActivechunks(glm::vec3 position);
+	void updateActiveChunks(glm::vec3 position);
 	bool lyingBetween(float coordinate, float delta, float firstBound, float secondBound) const;
 };

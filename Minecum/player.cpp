@@ -36,7 +36,7 @@ Player::Player(glm::vec3 position, std::string vertexPath, std::string fragmentP
 	glEnableVertexAttribArray(2);
 }
 
-void Player::processMovement(GLFWwindow*& window, float deltaTime, const World& world)
+void Player::processMovement(GLFWwindow* window, float deltaTime, const World& world)
 {
 	glm::vec3 motion = glm::vec3(0.0f);
 

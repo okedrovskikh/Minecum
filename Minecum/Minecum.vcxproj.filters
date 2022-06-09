@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Code">
+      <UniqueIdentifier>{1aad5ef7-f8f0-4d7b-9702-920e95d9503b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="chunk.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="shader.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="player.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="game.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="crosshair.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="block.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="world.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="player.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="chunk.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="game.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="crosshair.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="block.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="world.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

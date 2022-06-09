@@ -7,7 +7,7 @@ World::World(glm::vec3 position)
 	for (int i = 0; i < chunk.size(); i++)
 		getChunksNeighboor(i);
 
-	updateActivechunks(position);
+	updateActiveChunks(position);
 
 	for (int i = 0; i < chunk.size(); i++)
 		chunk[i]->updateMesh();
@@ -54,13 +54,14 @@ bool World::extendWorld(glm::vec3 position)
 	return update;
 }
 
-void World::updateActivechunks(glm::vec3 position)
+void World::updateActiveChunks(glm::vec3 position)
 {
 	activeChunk.clear();
 
 	Chunk* currChunk = getChunk(position);
-	
+
 	activeChunk.push_back(currChunk);
+	
 	for (int i = 0; i < 4; i++)
 	{
 		activeChunk.push_back(currChunk->chunks[i]);
@@ -74,12 +75,12 @@ void World::updateActivechunks(glm::vec3 position)
 void World::update(glm::vec3 position)
 {
 	if (extendWorld(position))
-		updateMeshes();
+		updateMesh();
 
-	updateActivechunks(position);
+	updateActiveChunks(position);
 }
 
-void World::updateMeshes()
+void World::updateMesh()
 {
 	for (int i = 0; i < chunk.size(); i++)
 		getChunksNeighboor(i);

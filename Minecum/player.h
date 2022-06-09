@@ -32,7 +32,7 @@ public:
     BlockType chosenBlock;
 	Player();
     Player(glm::vec3 position, std::string vertexPath, std::string fragmentPath, std::string texturePath);
-    void processMovement(GLFWwindow*& window, float deltaTime, const World& world);
+    void processMovement(GLFWwindow* window, float deltaTime, const World& world);
     void rayCast(const World& world);
     void processLeftClick(const World& world);
     void processRightClick(const World& world);
